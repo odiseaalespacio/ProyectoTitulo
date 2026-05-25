@@ -78,8 +78,8 @@ class ClotyRepository(context: Context) {
 
     suspend fun listarAlumnosPorCurso(idCurso: Int) = api.listarAlumnosPorCurso(idCurso)
 
-    suspend fun alumnoTieneTarjeta(idAlumno: Int): Boolean =
-        api.listarTarjetasAlumno(idAlumno).isNotEmpty()
+    suspend fun contarTarjetasAlumno(idAlumno: Int): Int =
+        api.listarTarjetasAlumno(idAlumno).size
 
     suspend fun asignarTarjeta(idAlumno: Int, uidNfc: String) =
         api.crearTarjeta(TarjetaRequest(idAlumno = idAlumno, uidNfc = uidNfc))

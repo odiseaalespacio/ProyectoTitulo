@@ -58,6 +58,13 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _alumnosPendientes = MutableStateFlow<List<Alumno>>(emptyList())
     val alumnosPendientes = _alumnosPendientes.asStateFlow()
 
+    private val _tarjetasDelActual = MutableStateFlow(0)
+    val tarjetasDelActual: StateFlow<Int> = _tarjetasDelActual.asStateFlow()
+
+    companion object {
+        const val TARJETAS_POR_ALUMNO = 3
+    }
+
     private val _ultimaCarga = MutableStateFlow<CargaMasivaResult?>(null)
     val ultimaCarga = _ultimaCarga.asStateFlow()
 
@@ -132,10 +139,12 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun prepararCargaNfc(idCurso: Int) = launchTask {
         val alumnos = repo.listarAlumnosPorCurso(idCurso)
-        val pendientes = alumnos.filter { !repo.alumnoTieneTarjeta(it.idAlumno) }
+        val pendientes = alumnos.filter { repo.contarTarjetasAlumno(it.idAlumno) < TARJETAS_POR_ALUMNO }
         _alumnosPendientes.value = pendientes
+        val primero = pendientes.firstOrNull()
+        _tarjetasDelActual.value = if (primero != null) repo.contarTarjetasAlumno(primero.idAlumno) else 0
         _message.value = if (pendientes.isEmpty()) {
-            "Todos los alumnos del curso ya tienen tarjeta"
+            "Todos los alumnos del curso ya tienen $TARJETAS_POR_ALUMNO tarjetas"
         } else {
             "Listo: ${pendientes.size} alumnos pendientes. Acerque la tarjeta NFC."
         }
@@ -147,10 +156,18 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         val alumno = alumnoActualNfc()
             ?: throw IllegalStateException("No hay alumnos pendientes de tarjeta")
         repo.asignarTarjeta(alumno.idAlumno, uid)
-        val restantes = _alumnosPendientes.value.drop(1)
-        _alumnosPendientes.value = restantes
-        _message.value = "Tarjeta $uid → ${alumno.nombres} ${alumno.apellidos}. " +
-            if (restantes.isEmpty()) "Lote completado." else "Siguiente: ${restantes.first().nombres}"
+        val nuevas = _tarjetasDelActual.value + 1
+        if (nuevas >= TARJETAS_POR_ALUMNO) {
+            val restantes = _alumnosPendientes.value.drop(1)
+            _alumnosPendientes.value = restantes
+            val siguiente = restantes.firstOrNull()
+            _tarjetasDelActual.value = if (siguiente != null) repo.contarTarjetasAlumno(siguiente.idAlumno) else 0
+            _message.value = "Tarjeta $TARJETAS_POR_ALUMNO/$TARJETAS_POR_ALUMNO $uid → ${alumno.nombres} ${alumno.apellidos}. " +
+                if (restantes.isEmpty()) "Lote completado." else "Siguiente: ${restantes.first().nombres}"
+        } else {
+            _tarjetasDelActual.value = nuevas
+            _message.value = "Tarjeta $nuevas/$TARJETAS_POR_ALUMNO $uid → ${alumno.nombres} ${alumno.apellidos}. Acerque la siguiente tarjeta."
+        }
     }
 
     private fun resumenCarga(r: CargaMasivaResult?): String {

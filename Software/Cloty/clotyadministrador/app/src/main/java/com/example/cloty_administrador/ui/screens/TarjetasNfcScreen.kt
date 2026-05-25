@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.cloty_administrador.ui.ClotyViewModel
+import com.example.cloty_administrador.ui.ClotyViewModel.Companion.TARJETAS_POR_ALUMNO
 import com.example.cloty_administrador.ui.components.MessageBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +46,7 @@ fun TarjetasNfcScreen(
     val colegios by viewModel.colegios.collectAsState()
     val cursos by viewModel.cursos.collectAsState()
     val pendientes by viewModel.alumnosPendientes.collectAsState()
+    val tarjetasDelActual by viewModel.tarjetasDelActual.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var idColegio by rememberSaveable { mutableIntStateOf(0) }
@@ -110,17 +112,22 @@ fun TarjetasNfcScreen(
                     if (actual != null) {
                         Text("${actual.nombres} ${actual.apellidos}")
                         Text("RUT ${actual.rut}", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            "Tarjeta ${tarjetasDelActual + 1} de $TARJETAS_POR_ALUMNO",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     } else {
                         Text("Seleccione curso e inicie el lote", style = MaterialTheme.typography.bodySmall)
                     }
-                    Text("Pendientes: ${pendientes.size}")
+                    Text("Alumnos pendientes: ${pendientes.size}")
                     if (!ultimoUid.isNullOrBlank()) {
                         Text("Último UID: $ultimoUid", style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }
             Text(
-                "Acerque cada tarjeta NFC al dispositivo. Se asignará automáticamente al siguiente alumno del curso.",
+                "Se asignan $TARJETAS_POR_ALUMNO tarjetas por alumno. Acerque cada tarjeta NFC al dispositivo.",
                 style = MaterialTheme.typography.bodySmall
             )
             MessageBanner(error, true)
