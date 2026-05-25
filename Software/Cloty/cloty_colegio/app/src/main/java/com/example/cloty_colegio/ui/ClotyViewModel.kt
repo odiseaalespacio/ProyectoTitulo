@@ -43,6 +43,13 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         cargarDashboard()
     }
 
+    fun activarCuenta(rut: String, email: String, telefono: String, password: String) = launchTask {
+        repo.activarCuenta(rut, email, telefono, password)
+        cargarPerfil()
+        cargarDashboard()
+        _message.value = "Cuenta activada exitosamente"
+    }
+
     fun logout() = launchTask {
         repo.logout()
         _dashboard.value = null

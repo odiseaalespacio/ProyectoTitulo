@@ -12,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,7 +28,7 @@ import com.example.cloty_colegio.ui.ClotyViewModel
 import com.example.cloty_colegio.ui.components.MessageBanner
 
 @Composable
-fun LoginScreen(viewModel: ClotyViewModel) {
+fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
     var identificador by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     val loading by viewModel.loading.collectAsState()
@@ -65,6 +66,10 @@ fun LoginScreen(viewModel: ClotyViewModel) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(if (loading) "Ingresando…" else "Ingresar")
+        }
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onActivarCuenta) {
+            Text("¿Primera vez? Activar cuenta del colegio")
         }
     }
 }

@@ -17,6 +17,13 @@ data class AuthMeResponse(
     val idApoderado: Int?
 )
 
+data class ActivarCuentaColegioRequest(
+    val rut: String,
+    val email: String,
+    val telefono: String,
+    val password: String
+)
+
 data class ScanPrendaRequest(
     val uidNfc: String,
     val ubicacion: String? = null,

@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.cloty_colegio.ui.ClotyViewModel
+import com.example.cloty_colegio.ui.screens.ActivarCuentaScreen
 import com.example.cloty_colegio.ui.screens.LoginScreen
 import com.example.cloty_colegio.ui.screens.MainScreen
 
@@ -28,7 +29,16 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
 
     NavHost(navController, startDestination = start) {
         composable(Routes.LOGIN) {
-            LoginScreen(viewModel)
+            LoginScreen(
+                viewModel = viewModel,
+                onActivarCuenta = { navController.navigate(Routes.ACTIVAR_CUENTA) }
+            )
+        }
+        composable(Routes.ACTIVAR_CUENTA) {
+            ActivarCuentaScreen(
+                viewModel = viewModel,
+                onBackToLogin = { navController.popBackStack() }
+            )
         }
         composable(Routes.MAIN) {
             MainScreen(

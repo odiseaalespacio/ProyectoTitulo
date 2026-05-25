@@ -1,5 +1,6 @@
 package com.example.cloty_colegio.data
 
+import com.example.cloty_colegio.data.api.ActivarCuentaColegioRequest
 import com.example.cloty_colegio.data.api.ApiClient
 import com.example.cloty_colegio.data.api.AuthMeResponse
 import com.example.cloty_colegio.data.api.ColegioDashboard
@@ -19,6 +20,13 @@ class ClotyRepository(context: android.content.Context) {
 
     suspend fun login(identificador: String, password: String) {
         val response = api.login(LoginRequest(identificador, password))
+        tokenStore.saveToken(response.token)
+    }
+
+    suspend fun activarCuenta(rut: String, email: String, telefono: String, password: String) {
+        val response = api.activarCuentaColegio(
+            ActivarCuentaColegioRequest(rut, email, telefono, password)
+        )
         tokenStore.saveToken(response.token)
     }
 

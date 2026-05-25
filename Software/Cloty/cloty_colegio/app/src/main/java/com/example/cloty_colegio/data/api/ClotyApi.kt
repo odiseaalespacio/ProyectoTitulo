@@ -9,6 +9,9 @@ interface ClotyApi {
     @POST("api/auth/login")
     suspend fun login(@Body body: LoginRequest): AuthTokenResponse
 
+    @POST("api/auth/activar-cuenta-colegio")
+    suspend fun activarCuentaColegio(@Body body: ActivarCuentaColegioRequest): AuthTokenResponse
+
     @GET("api/auth/me")
     suspend fun me(): AuthMeResponse
 
