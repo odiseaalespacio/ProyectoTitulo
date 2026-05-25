@@ -9,11 +9,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.cloty_apoderado.ui.ClotyViewModel
+import com.example.cloty_apoderado.ui.screens.ActivarCuentaScreen
 import com.example.cloty_apoderado.ui.screens.LoginScreen
 import com.example.cloty_apoderado.ui.screens.MainScreen
 
 object Routes {
     const val LOGIN = "login"
+    const val ACTIVAR_CUENTA = "activar_cuenta"
     const val MAIN = "main"
 }
 
@@ -32,7 +34,18 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel()) {
     }
 
     NavHost(navController, startDestination = start) {
-        composable(Routes.LOGIN) { LoginScreen(viewModel) }
+        composable(Routes.LOGIN) {
+            LoginScreen(
+                viewModel = viewModel,
+                onActivarCuenta = { navController.navigate(Routes.ACTIVAR_CUENTA) }
+            )
+        }
+        composable(Routes.ACTIVAR_CUENTA) {
+            ActivarCuentaScreen(
+                viewModel = viewModel,
+                onBackToLogin = { navController.popBackStack() }
+            )
+        }
         composable(Routes.MAIN) {
             MainScreen(viewModel) {
                 viewModel.logout()

@@ -21,6 +21,11 @@ class ClotyRepository(context: android.content.Context) {
         tokenStore.saveToken(api.login(LoginRequest(identificador, password)).token)
     }
 
+    suspend fun activarCuenta(rut: String, password: String) {
+        val req = com.example.cloty_apoderado.data.api.ActivarCuentaApoderadoRequest(rut, password)
+        tokenStore.saveToken(api.activarCuentaApoderado(req).token)
+    }
+
     suspend fun logout() = tokenStore.clear()
 
     suspend fun me(): AuthMeResponse = api.me()

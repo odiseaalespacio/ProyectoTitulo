@@ -11,6 +11,9 @@ interface ClotyApi {
     @POST("api/auth/login")
     suspend fun login(@Body body: LoginRequest): AuthTokenResponse
 
+    @POST("api/auth/activar-cuenta-apoderado")
+    suspend fun activarCuentaApoderado(@Body body: ActivarCuentaApoderadoRequest): AuthTokenResponse
+
     @GET("api/auth/me")
     suspend fun me(): AuthMeResponse
 

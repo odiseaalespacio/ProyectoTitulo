@@ -17,6 +17,11 @@ data class CambiarContrasenaRequest(
     val contrasenaNueva: String
 )
 
+data class ActivarCuentaApoderadoRequest(
+    val rut: String,
+    val password: String
+)
+
 data class PupiloResumen(
     val idAlumno: Int?,
     val rut: String?,

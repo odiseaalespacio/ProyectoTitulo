@@ -37,12 +37,16 @@ import com.example.cloty_apoderado.ui.ClotyViewModel
 import com.example.cloty_apoderado.ui.components.MessageBanner
 
 @Composable
-fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
-    var identificador by rememberSaveable { mutableStateOf("") }
+fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
+    var rut by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
+
+    val passwordsMatch = password == confirmPassword
+    val formValid = rut.isNotBlank() && password.length >= 4 && passwordsMatch
 
     Column(
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(24.dp),
@@ -50,13 +54,13 @@ fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Cloty Apoderado",
+            "Activar cuenta",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            "Notificaciones de prendas de sus pupilos",
+            "Ingrese el RUT con el que fue registrado por su colegio",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -71,8 +75,8 @@ fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
             cursorColor = MaterialTheme.colorScheme.primary
         )
         OutlinedTextField(
-            identificador, { identificador = it },
-            label = { Text("Usuario / RUT / Email") },
+            rut, { rut = it },
+            label = { Text("RUT (ej: 12345678-9)") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             colors = fieldColors
@@ -90,23 +94,37 @@ fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                        contentDescription = if (passwordVisible) "Ocultar" else "Mostrar",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         )
+        Spacer(Modifier.height(12.dp))
+        OutlinedTextField(
+            confirmPassword, { confirmPassword = it },
+            label = { Text("Confirmar contraseña") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            colors = fieldColors,
+            isError = confirmPassword.isNotEmpty() && !passwordsMatch,
+            supportingText = if (confirmPassword.isNotEmpty() && !passwordsMatch) {
+                { Text("Las contraseñas no coinciden") }
+            } else null
+        )
         Spacer(Modifier.height(16.dp))
         MessageBanner(error, true)
         Spacer(Modifier.height(8.dp))
         Button(
-            onClick = { viewModel.login(identificador.trim(), password) },
-            enabled = !loading && identificador.isNotBlank() && password.isNotBlank(),
+            onClick = { viewModel.activarCuenta(rut.trim(), password) },
+            enabled = !loading && formValid,
             modifier = Modifier.fillMaxWidth()
-        ) { Text(if (loading) "Ingresando…" else "Ingresar") }
+        ) { Text(if (loading) "Activando…" else "Activar cuenta") }
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onActivarCuenta) {
-            Text("¿Primera vez? Activar cuenta")
+        TextButton(onClick = onBackToLogin) {
+            Text("Volver al inicio de sesión")
         }
     }
 }
