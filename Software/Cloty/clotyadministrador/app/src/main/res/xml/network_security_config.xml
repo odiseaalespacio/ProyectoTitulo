@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HTTP en red local (desarrollo): emulador, localhost e IP LAN de la PC -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,0 +1,8 @@
+package com.cloty.domain;
+
+public enum TipoEvento {
+	PRENDA_ENCONTRADA,
+	PRENDA_RECUPERADA,
+	NOTIFICACION_ENVIADA,
+	TARJETA_DESACTIVADA
+}

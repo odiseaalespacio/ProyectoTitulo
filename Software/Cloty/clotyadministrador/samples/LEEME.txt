@@ -1,0 +1,17 @@
+CSV de ejemplo — app Cloty Administrador
+
+Ubicación: clotyadministrador/samples/
+
+Orden de carga (en la app: Colegios → elegir colegio → Carga CSV):
+  1) apoderados-ejemplo.csv
+  2) alumnos-ejemplo.csv  (los rut_apoderado deben existir del paso 1)
+
+Columnas apoderados:
+  rut, nombres, apellidos, email, telefono, direccion
+  (email y teléfono son opcionales)
+
+Columnas alumnos:
+  rut_alumno, nombres, apellidos, nombre_curso, rut_apoderado, estado
+  (estado: true/false; si el curso no existe, se crea en ese colegio)
+
+Copia los archivos al celular o ábrelos desde el explorador al importar.
