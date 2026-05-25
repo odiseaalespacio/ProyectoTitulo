@@ -22,7 +22,7 @@ val clotyApiBaseUrl = if (clotyApiHost.isNotEmpty()) {
 
 android {
     namespace = "com.example.cloty_administrador"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.cloty_administrador"
