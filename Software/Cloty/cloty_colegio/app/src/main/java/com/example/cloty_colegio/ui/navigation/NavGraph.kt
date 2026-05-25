@@ -14,7 +14,7 @@ import com.example.cloty_colegio.ui.screens.LoginScreen
 import com.example.cloty_colegio.ui.screens.MainScreen
 
 @Composable
-fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String? = null) {
+fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String? = null, scanCount: Int = 0) {
     val navController = rememberNavController()
     val token by viewModel.tokenFlow.collectAsState(initial = null)
     val start = if (token.isNullOrBlank()) Routes.LOGIN else Routes.MAIN
@@ -49,7 +49,8 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
                         popUpTo(0) { inclusive = true }
                     }
                 },
-                ultimoUid = ultimoUidNfc
+                ultimoUid = ultimoUidNfc,
+                scanCount = scanCount
             )
         }
     }

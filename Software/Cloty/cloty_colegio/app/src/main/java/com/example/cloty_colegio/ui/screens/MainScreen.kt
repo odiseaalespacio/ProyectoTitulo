@@ -17,7 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -28,19 +27,20 @@ import com.example.cloty_colegio.ui.ClotyViewModel
 fun MainScreen(
     viewModel: ClotyViewModel,
     onLogout: () -> Unit,
-    ultimoUid: String?
+    ultimoUid: String?,
+    scanCount: Int = 0
 ) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val nombreColegio by viewModel.nombreColegio.collectAsState()
-    var ultimoProcesado by rememberSaveable { mutableStateOf<String?>(null) }
+    var lastProcessedScan by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         viewModel.cargarDashboard()
     }
 
-    LaunchedEffect(ultimoUid) {
-        if (!ultimoUid.isNullOrBlank() && ultimoUid != ultimoProcesado) {
-            ultimoProcesado = ultimoUid
+    LaunchedEffect(scanCount) {
+        if (!ultimoUid.isNullOrBlank() && scanCount > 0 && scanCount != lastProcessedScan) {
+            lastProcessedScan = scanCount
             tab = 1
             viewModel.procesarEscaneo(ultimoUid)
         }

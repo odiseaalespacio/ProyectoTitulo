@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.cloty_colegio.nfc.NfcUidFormatter
@@ -16,10 +17,14 @@ class MainActivity : ComponentActivity() {
 
     private var nfcAdapter: NfcAdapter? = null
     private var ultimoUid by mutableStateOf<String?>(null)
+    private var scanCount by mutableIntStateOf(0)
 
     private val readerCallback = NfcAdapter.ReaderCallback { tag ->
         val uid = NfcUidFormatter.fromTag(tag)
-        runOnUiThread { ultimoUid = uid }
+        runOnUiThread {
+            ultimoUid = uid
+            scanCount++
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +33,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Cloty_colegioTheme {
-                ClotyNavGraph(ultimoUidNfc = ultimoUid)
+                ClotyNavGraph(ultimoUidNfc = ultimoUid, scanCount = scanCount)
             }
         }
     }
