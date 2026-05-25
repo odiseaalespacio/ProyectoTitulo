@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Class
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SupervisedUserCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,10 +50,10 @@ fun HomeScreen(
     )
     val items = buildList {
         if (esSuperUsuario) {
+            add(MenuItem("Super Usuarios", "super_usuarios", Icons.Default.SupervisedUserCircle))
             add(MenuItem("Administradores", "administradores", Icons.Default.AdminPanelSettings))
-        } else {
-            addAll(itemsOperativos)
         }
+        addAll(itemsOperativos)
         add(MenuItem("Mi cuenta", "cuenta", Icons.Default.Person))
     }
 

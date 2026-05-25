@@ -26,12 +26,12 @@ import com.example.cloty_colegio.ui.ClotyViewModel
 @Composable
 fun MainScreen(
     viewModel: ClotyViewModel,
-    onLogout: () -> Unit,
-    ultimoUid: String?,
-    scanCount: Int = 0
+    onLogout: () -> Unit
 ) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     val nombreColegio by viewModel.nombreColegio.collectAsState()
+    val ultimoUid by viewModel.ultimoUidNfc.collectAsState()
+    val scanCount by viewModel.nfcScanCount.collectAsState()
     var lastProcessedScan by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
@@ -42,7 +42,7 @@ fun MainScreen(
         if (!ultimoUid.isNullOrBlank() && scanCount > 0 && scanCount != lastProcessedScan) {
             lastProcessedScan = scanCount
             tab = 1
-            viewModel.procesarEscaneo(ultimoUid)
+            viewModel.procesarEscaneo(ultimoUid!!)
         }
     }
 

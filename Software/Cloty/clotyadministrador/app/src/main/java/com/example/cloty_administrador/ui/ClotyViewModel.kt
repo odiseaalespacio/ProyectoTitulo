@@ -14,6 +14,8 @@ import com.example.cloty_administrador.data.api.Colegio
 import com.example.cloty_administrador.data.api.ColegioRequest
 import com.example.cloty_administrador.data.api.Curso
 import com.example.cloty_administrador.data.api.CursoRequest
+import com.example.cloty_administrador.data.api.Usuario
+import com.example.cloty_administrador.data.api.UsuarioCreateRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,6 +47,9 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
+
+    private val _superUsuarios = MutableStateFlow<List<Usuario>>(emptyList())
+    val superUsuarios = _superUsuarios.asStateFlow()
 
     private val _administradores = MutableStateFlow<List<Administrador>>(emptyList())
     val administradores = _administradores.asStateFlow()
@@ -95,6 +100,18 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _colegios.value = emptyList()
         _cursos.value = emptyList()
         _alumnosPendientes.value = emptyList()
+    }
+
+    fun cargarSuperUsuarios() = launchTask {
+        _superUsuarios.value = repo.listarSuperUsuarios()
+    }
+
+    fun crearSuperUsuario(username: String, rut: String, password: String) = launchTask {
+        repo.crearSuperUsuario(
+            UsuarioCreateRequest(username, rut, password, "SUPER_USUARIO", true)
+        )
+        _message.value = "Super usuario creado"
+        cargarSuperUsuarios()
     }
 
     fun cargarAdministradores() = launchTask {

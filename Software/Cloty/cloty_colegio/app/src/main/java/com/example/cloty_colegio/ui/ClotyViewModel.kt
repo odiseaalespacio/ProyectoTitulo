@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -35,7 +37,20 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _ultimaOperacion = MutableStateFlow<OperacionPrendaResponse?>(null)
     val ultimaOperacion: StateFlow<OperacionPrendaResponse?> = _ultimaOperacion.asStateFlow()
 
+    private val _ultimoUidNfc = MutableStateFlow<String?>(null)
+    val ultimoUidNfc: StateFlow<String?> = _ultimoUidNfc.asStateFlow()
+
+    private val _nfcScanCount = MutableStateFlow(0)
+    val nfcScanCount: StateFlow<Int> = _nfcScanCount.asStateFlow()
+
+    private val scanMutex = Mutex()
+
     var ubicacionEscaneo: String = "Secretaría"
+
+    fun onNfcTagDetected(uid: String) {
+        _ultimoUidNfc.value = uid
+        _nfcScanCount.value++
+    }
 
     fun login(identificador: String, password: String) = launchTask {
         repo.login(identificador, password)
@@ -67,11 +82,23 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _nombreColegio.value = _dashboard.value?.nombreColegio ?: _nombreColegio.value
     }
 
-    fun procesarEscaneo(uid: String) = launchTask {
-        val resultado = repo.escanear(uid, ubicacionEscaneo.ifBlank { null })
-        _ultimaOperacion.value = resultado
-        _message.value = resultado.mensaje
-        cargarDashboard()
+    fun procesarEscaneo(uid: String) {
+        viewModelScope.launch {
+            if (!scanMutex.tryLock()) return@launch
+            try {
+                _loading.value = true
+                _error.value = null
+                val resultado = repo.escanear(uid, ubicacionEscaneo.ifBlank { null })
+                _ultimaOperacion.value = resultado
+                _message.value = resultado.mensaje
+            } catch (e: Exception) {
+                _error.value = parseError(e)
+            } finally {
+                _loading.value = false
+                scanMutex.unlock()
+            }
+            try { _dashboard.value = repo.dashboard() } catch (_: Exception) {}
+        }
     }
 
     fun cambiarContrasena(actual: String, nueva: String) = launchTask {

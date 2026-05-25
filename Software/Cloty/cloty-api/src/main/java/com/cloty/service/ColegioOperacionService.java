@@ -26,6 +26,7 @@ import com.cloty.repo.TarjetaRepository;
 import com.cloty.web.error.BadRequestException;
 import com.cloty.web.error.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ColegioOperacionService {
@@ -74,10 +76,42 @@ public class ColegioOperacionService {
 		String nombreAlumno = alumno.getNombres() + " " + alumno.getApellidos();
 		String tipoPrenda = tarjeta.getTipoPrenda() != null ? tarjeta.getTipoPrenda() : "Prenda";
 
-		List<Evento> historial = eventoRepository.findByIdTarjetaOrderByFechaEventoDesc(tarjeta.getIdTarjeta());
+		List<Evento> historial = eventoRepository.findByIdTarjetaOrderByIdEventoDesc(tarjeta.getIdTarjeta());
 		Evento ultimo = historial.isEmpty() ? null : historial.get(0);
 
+		log.info("=== SCAN uid={} tarjetaId={} totalEventos={} ultimoTipo={} ===",
+				req.uidNfc(), tarjeta.getIdTarjeta(),
+				historial.size(),
+				ultimo != null ? ultimo.getTipoEvento() : "NINGUNO");
+
+		if (ultimo != null && ultimo.getFechaEvento() != null) {
+			long diffMs = java.time.Duration.between(ultimo.getFechaEvento(), LocalDateTime.now()).toMillis();
+			log.info("  diffMs={} (debounce if < 5000)", diffMs);
+			if (diffMs < 5000) {
+				String accion = ultimo.getTipoEvento() == TipoEvento.PRENDA_ENCONTRADA ? "ENCONTRADA" : "ENTREGADA";
+				return new OperacionPrendaResponse(
+						ultimo.getTipoEvento(),
+						accion,
+						ultimo.getIdEvento(),
+						null,
+						tarjeta.getIdTarjeta(),
+						tarjeta.getUidNfc(),
+						alumno.getIdAlumno(),
+						nombreAlumno,
+						nombreCurso,
+						apoderado.getIdApoderado(),
+						apoderado.getNombres() + " " + apoderado.getApellidos(),
+						tipoPrenda,
+						accion.equals("ENCONTRADA")
+								? "Prenda ya registrada como encontrada"
+								: "Prenda ya registrada como entregada",
+						ultimo.getFechaEvento()
+				);
+			}
+		}
+
 		boolean pendienteEntrega = ultimo != null && ultimo.getTipoEvento() == TipoEvento.PRENDA_ENCONTRADA;
+		log.info("  pendienteEntrega={} -> {}", pendienteEntrega, pendienteEntrega ? "ENTREGA" : "ENCONTRADA");
 
 		if (pendienteEntrega) {
 			return registrarEntrega(idColegio, idUsuario, req, tarjeta, alumno, apoderado, nombreAlumno, nombreCurso, tipoPrenda);

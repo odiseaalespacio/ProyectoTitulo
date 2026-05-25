@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,9 +44,16 @@ public class Evento {
 	@Column(name = "ubicacion", length = 255)
 	private String ubicacion;
 
-	@Column(name = "fecha_evento", insertable = false, updatable = false)
+	@Column(name = "fecha_evento")
 	private LocalDateTime fechaEvento;
 
 	@Column(name = "registrado_por")
 	private Integer registradoPor;
+
+	@PrePersist
+	void prePersist() {
+		if (fechaEvento == null) {
+			fechaEvento = LocalDateTime.now();
+		}
+	}
 }

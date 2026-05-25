@@ -17,6 +17,7 @@ import com.example.cloty_administrador.ui.screens.CuentaScreen
 import com.example.cloty_administrador.ui.screens.CursosScreen
 import com.example.cloty_administrador.ui.screens.HomeScreen
 import com.example.cloty_administrador.ui.screens.LoginScreen
+import com.example.cloty_administrador.ui.screens.SuperUsuariosScreen
 import com.example.cloty_administrador.ui.screens.TarjetasNfcScreen
 
 @Composable
@@ -43,15 +44,8 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
             HomeScreen(
                 esSuperUsuario = esSuper,
                 onNavigate = { route ->
-                    val soloSuper = route == Routes.ADMINISTRADORES
-                    val soloAdmin = route in listOf(
-                        Routes.COLEGIOS,
-                        Routes.CURSOS,
-                        Routes.CARGA_CSV,
-                        Routes.TARJETAS_NFC
-                    )
+                    val soloSuper = route in listOf(Routes.ADMINISTRADORES, Routes.SUPER_USUARIOS)
                     if (soloSuper && !esSuper) return@HomeScreen
-                    if (soloAdmin && esSuper) return@HomeScreen
                     navController.navigate(route)
                 },
                 onLogout = {
@@ -62,6 +56,13 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
                 }
             )
         }
+        composable(Routes.SUPER_USUARIOS) {
+            if (esSuper) {
+                SuperUsuariosScreen(viewModel, onBack = { navController.popBackStack() })
+            } else {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            }
+        }
         composable(Routes.ADMINISTRADORES) {
             if (esSuper) {
                 AdministradoresScreen(viewModel, onBack = { navController.popBackStack() })
@@ -70,32 +71,16 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
             }
         }
         composable(Routes.COLEGIOS) {
-            if (!esSuper) {
-                ColegiosScreen(viewModel, onBack = { navController.popBackStack() })
-            } else {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            }
+            ColegiosScreen(viewModel, onBack = { navController.popBackStack() })
         }
         composable(Routes.CURSOS) {
-            if (!esSuper) {
-                CursosScreen(viewModel, onBack = { navController.popBackStack() })
-            } else {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            }
+            CursosScreen(viewModel, onBack = { navController.popBackStack() })
         }
         composable(Routes.CARGA_CSV) {
-            if (!esSuper) {
-                CargaCsvScreen(viewModel, onBack = { navController.popBackStack() })
-            } else {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            }
+            CargaCsvScreen(viewModel, onBack = { navController.popBackStack() })
         }
         composable(Routes.TARJETAS_NFC) {
-            if (!esSuper) {
-                TarjetasNfcScreen(viewModel, onBack = { navController.popBackStack() }, ultimoUid = ultimoUidNfc)
-            } else {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            }
+            TarjetasNfcScreen(viewModel, onBack = { navController.popBackStack() }, ultimoUid = ultimoUidNfc)
         }
         composable(Routes.CUENTA) {
             CuentaScreen(

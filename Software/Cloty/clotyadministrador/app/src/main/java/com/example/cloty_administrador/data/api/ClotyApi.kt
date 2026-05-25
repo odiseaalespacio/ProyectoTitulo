@@ -20,6 +20,12 @@ interface ClotyApi {
     @POST("api/auth/cambiar-contrasena")
     suspend fun cambiarContrasena(@Body body: CambiarContrasenaRequest)
 
+    @GET("api/usuarios")
+    suspend fun listarUsuarios(): List<Usuario>
+
+    @POST("api/usuarios")
+    suspend fun crearUsuario(@Body body: UsuarioCreateRequest): Usuario
+
     @GET("api/administradores")
     suspend fun listarAdministradores(): List<Administrador>
 

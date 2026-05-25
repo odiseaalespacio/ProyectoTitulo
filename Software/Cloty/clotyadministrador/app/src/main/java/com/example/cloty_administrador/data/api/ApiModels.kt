@@ -110,3 +110,20 @@ data class Tarjeta(
     val tipoPrenda: String?,
     val estado: String?
 )
+
+data class UsuarioCreateRequest(
+    val username: String,
+    val rut: String,
+    val password: String,
+    val rol: String,
+    val estado: Boolean? = true
+)
+
+data class Usuario(
+    val idUsuario: Int,
+    val username: String,
+    val rut: String?,
+    val rol: String,
+    val estado: Boolean?,
+    val fechaCreacion: String?
+)

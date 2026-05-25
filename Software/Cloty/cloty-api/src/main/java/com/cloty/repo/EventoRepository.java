@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface EventoRepository extends JpaRepository<Evento, Integer> {
 
-	List<Evento> findByIdTarjetaOrderByFechaEventoDesc(Integer idTarjeta);
+	List<Evento> findByIdTarjetaOrderByIdEventoDesc(Integer idTarjeta);
 
 	@Query("""
 			select e from Evento e, Tarjeta t, Alumno a

@@ -63,6 +63,12 @@ class ClotyRepository(context: Context) {
 
     suspend fun logout() = tokenStore.clear()
 
+    suspend fun listarSuperUsuarios() =
+        api.listarUsuarios().filter { it.rol == "SUPER_USUARIO" }
+
+    suspend fun crearSuperUsuario(req: com.example.cloty_administrador.data.api.UsuarioCreateRequest) =
+        api.crearUsuario(req)
+
     suspend fun listarAdministradores() = api.listarAdministradores()
 
     suspend fun crearAdministrador(req: AdministradorCompletoRequest) =

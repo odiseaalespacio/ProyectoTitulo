@@ -25,7 +25,7 @@ public class EventoService {
 		if (!tarjetaRepository.existsById(idTarjeta)) {
 			throw new ResourceNotFoundException("Tarjeta no encontrada: " + idTarjeta);
 		}
-		return eventoRepository.findByIdTarjetaOrderByFechaEventoDesc(idTarjeta);
+		return eventoRepository.findByIdTarjetaOrderByIdEventoDesc(idTarjeta);
 	}
 
 	@Transactional(readOnly = true)
