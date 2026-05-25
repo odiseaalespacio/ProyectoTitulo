@@ -8,7 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -21,8 +26,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.cloty_colegio.ui.ClotyViewModel
 import com.example.cloty_colegio.ui.components.MessageBanner
@@ -31,6 +38,7 @@ import com.example.cloty_colegio.ui.components.MessageBanner
 fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
     var identificador by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
 
@@ -39,8 +47,17 @@ fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Cloty Colegio", style = MaterialTheme.typography.headlineMedium)
-        Text("Gestión de prendas perdidas", style = MaterialTheme.typography.bodyMedium)
+        Text(
+            "Cloty Colegio",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            "Gestión de prendas perdidas",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Spacer(Modifier.height(24.dp))
         OutlinedTextField(
             identificador, { identificador = it },
@@ -54,8 +71,16 @@ fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
             label = { Text("Contraseña") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                    )
+                }
+            }
         )
         Spacer(Modifier.height(16.dp))
         MessageBanner(error, true)
