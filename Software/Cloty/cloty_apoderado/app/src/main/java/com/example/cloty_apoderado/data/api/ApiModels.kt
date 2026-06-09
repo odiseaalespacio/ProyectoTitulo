@@ -17,6 +17,29 @@ data class CambiarContrasenaRequest(
     val contrasenaNueva: String
 )
 
+// esta parte es nueva
+data class ApoderadoRequest(
+    val idUsuario: Int? = null,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String? = null,
+    val telefono: String? = null,
+    val direccion: String? = null
+)
+
+data class Apoderado(
+    val idApoderado: Int,
+    val idUsuario: Int?,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String?,
+    val telefono: String?,
+    val direccion: String?
+)
+
+// esta parte es nueva
 data class ActivarCuentaApoderadoRequest(
     val rut: String,
     val password: String

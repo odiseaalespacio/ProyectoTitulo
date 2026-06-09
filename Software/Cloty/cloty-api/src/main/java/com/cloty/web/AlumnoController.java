@@ -50,21 +50,24 @@ public class AlumnoController {
 		return alumnoService.obtener(id);
 	}
 
+	// esta parte es nueva
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarAlumnoRequest(#body))")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Alumno crear(@Valid @RequestBody AlumnoRequest body) {
 		return alumnoService.crear(body);
 	}
 
+	// esta parte es nueva
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarAlumnoId(#id) and @authz.colegioPuedeGestionarAlumnoRequest(#body))")
 	public Alumno actualizar(@PathVariable Integer id, @Valid @RequestBody AlumnoRequest body) {
 		return alumnoService.actualizar(id, body);
 	}
 
+	// esta parte es nueva
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarAlumnoId(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		alumnoService.eliminar(id);

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Class
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SupervisedUserCircle
 import androidx.compose.material3.Card
@@ -44,6 +45,8 @@ fun HomeScreen(
 ) {
     val itemsOperativos = listOf(
         MenuItem("Colegios", "colegios", Icons.Default.School),
+        // esta parte es nueva
+        MenuItem("Apoderados y alumnos", "gestion_personas", Icons.Default.Groups),
         MenuItem("Cursos", "cursos", Icons.Default.Class),
         MenuItem("Carga CSV", "carga_csv", Icons.Default.Upload),
         MenuItem("Tarjetas NFC", "tarjetas_nfc", Icons.Default.Nfc),

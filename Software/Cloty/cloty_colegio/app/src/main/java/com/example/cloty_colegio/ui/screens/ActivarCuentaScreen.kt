@@ -27,7 +27,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.cloty_colegio.ui.ClotyViewModel
+import com.example.cloty_colegio.ui.components.EmailTextField
 import com.example.cloty_colegio.ui.components.MessageBanner
+import com.example.cloty_colegio.ui.components.RutTextField
+import com.example.cloty_colegio.ui.components.TelefonoChilenoTextField
+import com.example.cloty_colegio.ui.components.ValidationMessageBanner
+import com.example.cloty_colegio.util.ChileValidators
 
 @Composable
 fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
@@ -36,13 +41,21 @@ fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
     var telefono by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
+    // esto es nuevo
+    var showValidation by rememberSaveable { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
 
     val passwordsMatch = password == confirmPassword
-    val formValid = rut.isNotBlank() && email.isNotBlank() && telefono.isNotBlank()
-            && password.length >= 4 && passwordsMatch
+
+    fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
+        ChileValidators.mensajeErrorRut(rut, mostrarVacios = mostrarVacios),
+        ChileValidators.mensajeErrorEmail(email, obligatorio = true, mostrarVacios = mostrarVacios),
+        ChileValidators.mensajeErrorTelefono(telefono, obligatorio = true, mostrarVacios = mostrarVacios),
+        if (password.length < 4 && mostrarVacios) "La contraseña debe tener al menos 4 caracteres" else null,
+        if (confirmPassword.isNotEmpty() && !passwordsMatch) "Las contraseñas no coinciden" else null
+    )
 
     Column(
         Modifier
@@ -58,28 +71,12 @@ fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(Modifier.height(20.dp))
-        OutlinedTextField(
-            rut, { rut = it },
-            label = { Text("RUT del colegio") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
+        // esto es nuevo
+        RutTextField(rut, { rut = it; showValidation = false }, label = "RUT del colegio", showValidation = showValidation)
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(
-            email, { email = it },
-            label = { Text("Email del colegio") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-        )
+        EmailTextField(email, { email = it; showValidation = false }, label = "Email del colegio", obligatorio = true, showValidation = showValidation)
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(
-            telefono, { telefono = it },
-            label = { Text("Teléfono") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-        )
+        TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, obligatorio = true, showValidation = showValidation)
         Spacer(Modifier.height(10.dp))
         OutlinedTextField(
             password, { password = it },
@@ -107,12 +104,26 @@ fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
             )
         }
         Spacer(Modifier.height(16.dp))
+        // esto es nuevo
+        ValidationMessageBanner(if (showValidation) errorValidacion(true) else null)
         MessageBanner(error, true)
         MessageBanner(message, false, Modifier.padding(top = 8.dp))
         Spacer(Modifier.height(8.dp))
         Button(
-            onClick = { viewModel.activarCuenta(rut.trim(), email.trim(), telefono.trim(), password) },
-            enabled = !loading && formValid,
+            onClick = {
+                val err = errorValidacion(true)
+                if (err != null) {
+                    showValidation = true
+                    return@Button
+                }
+                viewModel.activarCuenta(
+                    ChileValidators.normalizarRutParaApi(rut),
+                    email.trim(),
+                    telefono.trim(),
+                    password
+                )
+            },
+            enabled = !loading,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(if (loading) "Activando…" else "Activar cuenta")

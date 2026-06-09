@@ -1,9 +1,14 @@
 package com.example.cloty_colegio.data
 
 import com.example.cloty_colegio.data.api.ActivarCuentaColegioRequest
+import com.example.cloty_colegio.data.api.AlumnoRequest
 import com.example.cloty_colegio.data.api.ApiClient
+import com.example.cloty_colegio.data.api.ApoderadoRequest
 import com.example.cloty_colegio.data.api.AuthMeResponse
+import com.example.cloty_colegio.data.api.ColegioApoderadoRequest
 import com.example.cloty_colegio.data.api.ColegioDashboard
+import com.example.cloty_colegio.data.api.ColegioRequest
+import com.example.cloty_colegio.data.api.CursoRequest
 import com.example.cloty_colegio.data.api.LoginRequest
 import com.example.cloty_colegio.data.api.OperacionPrendaResponse
 import com.example.cloty_colegio.data.api.ScanPrendaRequest
@@ -43,4 +48,38 @@ class ClotyRepository(context: android.content.Context) {
         api.cambiarContrasena(
             com.example.cloty_colegio.data.api.CambiarContrasenaRequest(actual, nueva)
         )
+
+    // esta parte es nueva
+    suspend fun obtenerColegio(id: Int) = api.obtenerColegio(id)
+
+    suspend fun actualizarColegio(id: Int, req: ColegioRequest) = api.actualizarColegio(id, req)
+
+    suspend fun listarApoderadosPorColegio(idColegio: Int) =
+        api.listarApoderadosPorColegio(idColegio)
+
+    suspend fun crearApoderadoEnColegio(idColegio: Int, req: ApoderadoRequest) {
+        val apoderado = api.crearApoderado(req)
+        api.crearColegioApoderado(ColegioApoderadoRequest(idColegio, apoderado.idApoderado))
+    }
+
+    suspend fun actualizarApoderado(id: Int, req: ApoderadoRequest) =
+        api.actualizarApoderado(id, req)
+
+    suspend fun eliminarApoderado(id: Int) = api.eliminarApoderado(id)
+
+    suspend fun listarAlumnosPorColegio(idColegio: Int) = api.listarAlumnosPorColegio(idColegio)
+
+    suspend fun crearAlumno(req: AlumnoRequest) = api.crearAlumno(req)
+
+    suspend fun actualizarAlumno(id: Int, req: AlumnoRequest) = api.actualizarAlumno(id, req)
+
+    suspend fun eliminarAlumno(id: Int) = api.eliminarAlumno(id)
+
+    suspend fun listarCursos(idColegio: Int) = api.listarCursos(idColegio)
+
+    suspend fun crearCurso(req: CursoRequest) = api.crearCurso(req)
+
+    suspend fun actualizarCurso(id: Int, req: CursoRequest) = api.actualizarCurso(id, req)
+
+    suspend fun eliminarCurso(id: Int) = api.eliminarCurso(id)
 }

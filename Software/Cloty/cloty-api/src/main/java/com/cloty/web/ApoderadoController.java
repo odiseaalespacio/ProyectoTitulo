@@ -32,27 +32,38 @@ public class ApoderadoController {
 		return apoderadoService.listar();
 	}
 
+	// esta parte es nueva
+	@GetMapping("/colegio/{idColegio}")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.ownsColegio(#idColegio))")
+	public List<Apoderado> listarPorColegio(@PathVariable Integer idColegio) {
+		return apoderadoService.listarPorColegio(idColegio);
+	}
+
+	// esta parte es nueva
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsApoderado(#id)")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsApoderado(#id) or (hasRole('COLEGIO') and @authz.apoderadoAsociadoAMiColegio(#id))")
 	public Apoderado obtener(@PathVariable Integer id) {
 		return apoderadoService.obtener(id);
 	}
 
+	// esta parte es nueva
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or hasRole('COLEGIO')")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Apoderado crear(@Valid @RequestBody ApoderadoRequest body) {
 		return apoderadoService.crear(body);
 	}
 
+	// esta parte es nueva
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsApoderado(#id) or (hasRole('COLEGIO') and @authz.apoderadoAsociadoAMiColegio(#id))")
 	public Apoderado actualizar(@PathVariable Integer id, @Valid @RequestBody ApoderadoRequest body) {
 		return apoderadoService.actualizar(id, body);
 	}
 
+	// esta parte es nueva
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.apoderadoAsociadoAMiColegio(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		apoderadoService.eliminar(id);

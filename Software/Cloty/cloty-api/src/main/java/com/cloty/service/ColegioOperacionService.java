@@ -198,11 +198,25 @@ public class ColegioOperacionService {
 				idUsuario
 		));
 
+		String titulo = "Prenda entregada — " + nombreAlumno;
+		String mensaje = "Se registró la entrega de la " + tipoPrenda.toLowerCase() + " de su pupilo(a) " + nombreAlumno
+				+ (nombreCurso != null ? " (" + nombreCurso + ")" : "")
+				+ " en el colegio.";
+
+		Notificacion notificacion = notificacionService.crear(new NotificacionRequest(
+				evento.getIdEvento(),
+				apoderado.getIdApoderado(),
+				titulo,
+				mensaje,
+				EstadoNotificacion.ENVIADA,
+				false
+		));
+
 		return new OperacionPrendaResponse(
 				TipoEvento.PRENDA_RECUPERADA,
 				"ENTREGADA",
 				evento.getIdEvento(),
-				null,
+				notificacion.getIdNotificacion(),
 				tarjeta.getIdTarjeta(),
 				tarjeta.getUidNfc(),
 				alumno.getIdAlumno(),
@@ -211,7 +225,7 @@ public class ColegioOperacionService {
 				apoderado.getIdApoderado(),
 				apoderado.getNombres() + " " + apoderado.getApellidos(),
 				tipoPrenda,
-				"Prenda marcada como entregada",
+				"Notificación enviada al apoderado",
 				evento.getFechaEvento()
 		);
 	}

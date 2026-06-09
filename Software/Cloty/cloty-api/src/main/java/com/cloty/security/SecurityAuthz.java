@@ -2,6 +2,10 @@ package com.cloty.security;
 
 import com.cloty.domain.Alumno;
 import com.cloty.domain.RolUsuario;
+// esta parte es nueva
+import com.cloty.dto.AlumnoRequest;
+import com.cloty.dto.ColegioApoderadoRequest;
+import com.cloty.dto.CursoRequest;
 import com.cloty.dto.EventoRequest;
 import com.cloty.dto.NotificacionRequest;
 import com.cloty.repo.AlumnoRepository;
@@ -176,5 +180,40 @@ public class SecurityAuthz {
 	public boolean colegioPuedeGestionarNotificacionId(Integer idNotificacion) {
 		ClotyUserDetails p = principal();
 		return p != null && p.getRol() == RolUsuario.COLEGIO && ownsNotificacion(idNotificacion);
+	}
+
+	// esta parte es nueva
+	public boolean colegioPuedeGestionarAlumnoRequest(AlumnoRequest req) {
+		ClotyUserDetails p = principal();
+		if (p == null || p.getRol() != RolUsuario.COLEGIO || p.getIdColegio() == null || req == null) {
+			return false;
+		}
+		if (!p.getIdColegio().equals(req.idColegio())) {
+			return false;
+		}
+		return apoderadoEnColegio(req.idApoderado(), req.idColegio()) && ownsCurso(req.idCurso());
+	}
+
+	public boolean colegioPuedeGestionarAlumnoId(Integer idAlumno) {
+		ClotyUserDetails p = principal();
+		return p != null && p.getRol() == RolUsuario.COLEGIO && ownsAlumno(idAlumno);
+	}
+
+	public boolean colegioPuedeGestionarCursoRequest(CursoRequest req) {
+		return req != null && ownsColegio(req.idColegio());
+	}
+
+	public boolean colegioPuedeGestionarCursoId(Integer idCurso) {
+		return ownsCurso(idCurso);
+	}
+
+	public boolean colegioPuedeGestionarColegioApoderadoRequest(ColegioApoderadoRequest req) {
+		return req != null && ownsColegio(req.idColegio());
+	}
+
+	public boolean colegioPuedeEliminarColegioApoderado(Integer idColegioApoderado) {
+		return colegioApoderadoRepository.findById(idColegioApoderado)
+				.map(ca -> ownsColegio(ca.getIdColegio()))
+				.orElse(false);
 	}
 }

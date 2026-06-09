@@ -13,6 +13,7 @@ import com.example.cloty_administrador.ui.ClotyViewModel
 import com.example.cloty_administrador.ui.screens.AdministradoresScreen
 import com.example.cloty_administrador.ui.screens.CargaCsvScreen
 import com.example.cloty_administrador.ui.screens.ColegiosScreen
+import com.example.cloty_administrador.ui.screens.GestionPersonasScreen
 import com.example.cloty_administrador.ui.screens.CuentaScreen
 import com.example.cloty_administrador.ui.screens.CursosScreen
 import com.example.cloty_administrador.ui.screens.HomeScreen
@@ -72,6 +73,10 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
         }
         composable(Routes.COLEGIOS) {
             ColegiosScreen(viewModel, onBack = { navController.popBackStack() })
+        }
+        // esta parte es nueva
+        composable(Routes.GESTION_PERSONAS) {
+            GestionPersonasScreen(viewModel, onBack = { navController.popBackStack() })
         }
         composable(Routes.CURSOS) {
             CursosScreen(viewModel, onBack = { navController.popBackStack() })

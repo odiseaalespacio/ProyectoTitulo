@@ -9,6 +9,9 @@ import com.example.cloty_administrador.data.TokenStore
 import com.example.cloty_administrador.data.api.Administrador
 import com.example.cloty_administrador.data.api.AdministradorCompletoRequest
 import com.example.cloty_administrador.data.api.Alumno
+import com.example.cloty_administrador.data.api.AlumnoRequest
+import com.example.cloty_administrador.data.api.Apoderado
+import com.example.cloty_administrador.data.api.ApoderadoRequest
 import com.example.cloty_administrador.data.api.CargaMasivaResult
 import com.example.cloty_administrador.data.api.Colegio
 import com.example.cloty_administrador.data.api.ColegioRequest
@@ -57,6 +60,14 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _colegios = MutableStateFlow<List<Colegio>>(emptyList())
     val colegios = _colegios.asStateFlow()
 
+    // esta parte es nueva
+    private val _apoderadosColegio = MutableStateFlow<List<Apoderado>>(emptyList())
+    val apoderadosColegio = _apoderadosColegio.asStateFlow()
+
+    // esta parte es nueva
+    private val _alumnosColegio = MutableStateFlow<List<Alumno>>(emptyList())
+    val alumnosColegio = _alumnosColegio.asStateFlow()
+
     private val _cursos = MutableStateFlow<List<Curso>>(emptyList())
     val cursos = _cursos.asStateFlow()
 
@@ -98,6 +109,8 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _rolActual.value = null
         _administradores.value = emptyList()
         _colegios.value = emptyList()
+        _apoderadosColegio.value = emptyList()
+        _alumnosColegio.value = emptyList()
         _cursos.value = emptyList()
         _alumnosPendientes.value = emptyList()
     }
@@ -132,6 +145,72 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         repo.crearColegio(req)
         _message.value = "Colegio registrado"
         cargarColegios()
+    }
+
+    // esta parte es nueva
+    fun actualizarColegio(id: Int, req: ColegioRequest) = launchTask {
+        repo.actualizarColegio(id, req)
+        _message.value = "Colegio actualizado"
+        cargarColegios()
+    }
+
+    // esta parte es nueva
+    fun eliminarColegio(id: Int) = launchTask {
+        repo.eliminarColegio(id)
+        _message.value = "Colegio eliminado"
+        cargarColegios()
+    }
+
+    // esta parte es nueva
+    fun cargarApoderadosColegio(idColegio: Int) = launchTask {
+        _apoderadosColegio.value = repo.listarApoderadosPorColegio(idColegio)
+    }
+
+    // esta parte es nueva
+    fun crearApoderado(idColegio: Int, req: ApoderadoRequest) = launchTask {
+        repo.crearApoderadoEnColegio(idColegio, req)
+        _message.value = "Apoderado registrado"
+        cargarApoderadosColegio(idColegio)
+    }
+
+    // esta parte es nueva
+    fun actualizarApoderado(id: Int, idColegio: Int, req: ApoderadoRequest) = launchTask {
+        repo.actualizarApoderado(id, req)
+        _message.value = "Apoderado actualizado"
+        cargarApoderadosColegio(idColegio)
+    }
+
+    // esta parte es nueva
+    fun eliminarApoderado(id: Int, idColegio: Int) = launchTask {
+        repo.eliminarApoderado(id)
+        _message.value = "Apoderado eliminado"
+        cargarApoderadosColegio(idColegio)
+    }
+
+    // esta parte es nueva
+    fun cargarAlumnosColegio(idColegio: Int) = launchTask {
+        _alumnosColegio.value = repo.listarAlumnosPorColegio(idColegio)
+    }
+
+    // esta parte es nueva
+    fun crearAlumno(req: AlumnoRequest) = launchTask {
+        repo.crearAlumno(req)
+        _message.value = "Alumno registrado"
+        cargarAlumnosColegio(req.idColegio)
+    }
+
+    // esta parte es nueva
+    fun actualizarAlumno(id: Int, req: AlumnoRequest) = launchTask {
+        repo.actualizarAlumno(id, req)
+        _message.value = "Alumno actualizado"
+        cargarAlumnosColegio(req.idColegio)
+    }
+
+    // esta parte es nueva
+    fun eliminarAlumno(id: Int, idColegio: Int) = launchTask {
+        repo.eliminarAlumno(id)
+        _message.value = "Alumno eliminado"
+        cargarAlumnosColegio(idColegio)
     }
 
     fun cargarCursos(idColegio: Int) = launchTask {

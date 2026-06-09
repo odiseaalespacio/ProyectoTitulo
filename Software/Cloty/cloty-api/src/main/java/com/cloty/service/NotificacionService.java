@@ -22,6 +22,8 @@ public class NotificacionService {
 	private final EventoRepository eventoRepository;
 	private final ApoderadoRepository apoderadoRepository;
 	private final ColegioRepository colegioRepository;
+	// esto es nuevo
+	private final EmailService emailService;
 
 	@Transactional(readOnly = true)
 	public List<Notificacion> listarPorColegio(Integer idColegio) {
@@ -69,7 +71,11 @@ public class NotificacionService {
 				.estado(req.estado() != null ? req.estado() : EstadoNotificacion.PENDIENTE)
 				.leida(req.leida() != null ? req.leida() : Boolean.FALSE)
 				.build();
-		return notificacionRepository.save(n);
+		n = notificacionRepository.save(n);
+		// esto es nuevo
+		apoderadoRepository.findById(req.idApoderado()).ifPresent(apoderado ->
+				emailService.enviarNotificacionApoderado(apoderado, req.titulo(), req.mensaje()));
+		return n;
 	}
 
 	@Transactional

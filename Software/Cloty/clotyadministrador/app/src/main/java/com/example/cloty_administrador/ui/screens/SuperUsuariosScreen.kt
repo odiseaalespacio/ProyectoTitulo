@@ -35,6 +35,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.cloty_administrador.ui.ClotyViewModel
 import com.example.cloty_administrador.ui.components.MessageBanner
+import com.example.cloty_administrador.ui.components.RutTextField
+import com.example.cloty_administrador.ui.components.ValidationMessageBanner
+import com.example.cloty_administrador.util.ChileValidators
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,9 +114,17 @@ private fun SuperUsuarioFormDialog(
     var rut by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
+    // esto es nuevo
+    var showValidation by rememberSaveable { mutableStateOf(false) }
 
     val passwordsMatch = password == confirmPassword
-    val formValid = username.isNotBlank() && rut.isNotBlank() && password.length >= 4 && passwordsMatch
+
+    fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
+        if (username.isBlank() && mostrarVacios) "Debe ingresar un nombre de usuario" else null,
+        ChileValidators.mensajeErrorRut(rut, mostrarVacios = mostrarVacios),
+        if (password.length < 4 && mostrarVacios) "La contraseña debe tener al menos 4 caracteres" else null,
+        if (confirmPassword.isNotEmpty() && !passwordsMatch) "Las contraseñas no coinciden" else null
+    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -126,12 +137,7 @@ private fun SuperUsuarioFormDialog(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                    rut, { rut = it },
-                    label = { Text("RUT") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                 OutlinedTextField(
                     password, { password = it },
                     label = { Text("Contraseña") },
@@ -150,12 +156,21 @@ private fun SuperUsuarioFormDialog(
                     } else null,
                     modifier = Modifier.fillMaxWidth()
                 )
+                // esto es nuevo
+                ValidationMessageBanner(if (showValidation) errorValidacion(true) else null)
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(username.trim(), rut.trim(), password) },
-                enabled = !loading && formValid
+                onClick = {
+                    val err = errorValidacion(true)
+                    if (err != null) {
+                        showValidation = true
+                        return@Button
+                    }
+                    onConfirm(username.trim(), ChileValidators.normalizarRutParaApi(rut), password)
+                },
+                enabled = !loading
             ) { Text("Crear") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }

@@ -59,6 +59,88 @@ data class ActividadReciente(
     val descripcion: String?
 )
 
+// esta parte es nueva
+data class ColegioRequest(
+    val idUsuario: Int? = null,
+    val rut: String,
+    val nombre: String,
+    val email: String? = null,
+    val telefono: String? = null,
+    val direccion: String? = null
+)
+
+data class Colegio(
+    val idColegio: Int,
+    val idUsuario: Int?,
+    val rut: String,
+    val nombre: String,
+    val email: String?,
+    val telefono: String?,
+    val direccion: String?
+)
+
+data class ApoderadoRequest(
+    val idUsuario: Int? = null,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String? = null,
+    val telefono: String? = null,
+    val direccion: String? = null
+)
+
+data class Apoderado(
+    val idApoderado: Int,
+    val idUsuario: Int?,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String?,
+    val telefono: String?,
+    val direccion: String?
+)
+
+data class ColegioApoderadoRequest(
+    val idColegio: Int,
+    val idApoderado: Int
+)
+
+data class AlumnoRequest(
+    val idColegio: Int,
+    val idApoderado: Int,
+    val idCurso: Int,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val estado: Boolean? = true
+)
+
+data class Alumno(
+    val idAlumno: Int,
+    val idColegio: Int,
+    val idApoderado: Int,
+    val idCurso: Int,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val estado: Boolean?
+)
+
+data class CursoRequest(
+    val idColegio: Int,
+    val nombre: String,
+    val nivel: String? = null,
+    val estado: Boolean? = true
+)
+
+data class Curso(
+    val idCurso: Int,
+    val idColegio: Int,
+    val nombre: String,
+    val nivel: String?,
+    val estado: Boolean?
+)
+
 data class ColegioDashboard(
     val idColegio: Int?,
     val nombreColegio: String?,

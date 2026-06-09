@@ -1,5 +1,7 @@
 package com.example.cloty_apoderado.ui.screens
 
+// esta parte es nueva
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +37,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.cloty_apoderado.ui.ClotyViewModel
 import com.example.cloty_apoderado.ui.components.MessageBanner
+import com.example.cloty_apoderado.ui.components.RutTextField
+import com.example.cloty_apoderado.ui.components.ValidationMessageBanner
+import com.example.cloty_apoderado.util.ChileValidators
 
 @Composable
 fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
@@ -42,11 +47,18 @@ fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    // esto es nuevo
+    var showValidation by rememberSaveable { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
 
     val passwordsMatch = password == confirmPassword
-    val formValid = rut.isNotBlank() && password.length >= 4 && passwordsMatch
+
+    fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
+        ChileValidators.mensajeErrorRut(rut, mostrarVacios = mostrarVacios),
+        if (password.length < 4 && mostrarVacios) "La contraseña debe tener al menos 4 caracteres" else null,
+        if (confirmPassword.isNotEmpty() && !passwordsMatch) "Las contraseñas no coinciden" else null
+    )
 
     Column(
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(24.dp),
@@ -74,12 +86,12 @@ fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
             unfocusedBorderColor = MaterialTheme.colorScheme.outline,
             cursorColor = MaterialTheme.colorScheme.primary
         )
-        OutlinedTextField(
-            rut, { rut = it },
-            label = { Text("RUT (ej: 12345678-9)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            colors = fieldColors
+        // esto es nuevo
+        RutTextField(
+            rut,
+            { rut = it; showValidation = false },
+            label = "RUT (ej: 12.345.678-9)",
+            showValidation = showValidation
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
@@ -115,11 +127,20 @@ fun ActivarCuentaScreen(viewModel: ClotyViewModel, onBackToLogin: () -> Unit) {
             } else null
         )
         Spacer(Modifier.height(16.dp))
+        // esto es nuevo
+        ValidationMessageBanner(if (showValidation) errorValidacion(true) else null)
         MessageBanner(error, true)
         Spacer(Modifier.height(8.dp))
         Button(
-            onClick = { viewModel.activarCuenta(rut.trim(), password) },
-            enabled = !loading && formValid,
+            onClick = {
+                val err = errorValidacion(true)
+                if (err != null) {
+                    showValidation = true
+                    return@Button
+                }
+                viewModel.activarCuenta(ChileValidators.normalizarRutParaApi(rut), password)
+            },
+            enabled = !loading,
             modifier = Modifier.fillMaxWidth()
         ) { Text(if (loading) "Activando…" else "Activar cuenta") }
         Spacer(Modifier.height(8.dp))

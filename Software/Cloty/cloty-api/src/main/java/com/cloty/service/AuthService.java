@@ -40,6 +40,8 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final ClotyUserDetailsService userDetailsService;
 	private final JwtService jwtService;
+	// esto es nuevo
+	private final EmailService emailService;
 
 	@Value("${cloty.jwt.expiration-ms:86400000}")
 	private long expirationMs;
@@ -149,6 +151,8 @@ public class AuthService {
 		u = usuarioRepository.save(u);
 		a.setIdUsuario(u.getIdUsuario());
 		apoderadoRepository.save(a);
+		// esto es nuevo
+		emailService.enviarActivacionApoderado(a, username);
 		ClotyUserDetails principal = (ClotyUserDetails) userDetailsService.loadUserByUsername(u.getUsername());
 		return new AuthTokenResponse(jwtService.generateToken(principal), expirationMs);
 	}
@@ -187,6 +191,8 @@ public class AuthService {
 		col.setEmail(emailNorm);
 		col.setTelefono(req.telefono().trim());
 		colegioRepository.save(col);
+		// esto es nuevo
+		emailService.enviarActivacionColegio(col, username);
 		ClotyUserDetails principal = (ClotyUserDetails) userDetailsService.loadUserByUsername(u.getUsername());
 		return new AuthTokenResponse(jwtService.generateToken(principal), expirationMs);
 	}

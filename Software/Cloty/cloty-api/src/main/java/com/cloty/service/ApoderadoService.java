@@ -3,13 +3,17 @@ package com.cloty.service;
 import com.cloty.domain.Apoderado;
 import com.cloty.dto.ApoderadoRequest;
 import com.cloty.repo.ApoderadoRepository;
+import com.cloty.repo.ColegioApoderadoRepository;
+import com.cloty.repo.ColegioRepository;
 import com.cloty.repo.UsuarioRepository;
+import com.cloty.validation.ChileValidacion;
 import com.cloty.web.error.ConflictException;
 import com.cloty.web.error.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,6 +22,9 @@ import java.util.Objects;
 public class ApoderadoService {
 
 	private final ApoderadoRepository apoderadoRepository;
+	// esta parte es nueva
+	private final ColegioApoderadoRepository colegioApoderadoRepository;
+	private final ColegioRepository colegioRepository;
 	private final UsuarioRepository usuarioRepository;
 
 	@Transactional(readOnly = true)
@@ -31,6 +38,23 @@ public class ApoderadoService {
 				.orElseThrow(() -> new ResourceNotFoundException("Apoderado no encontrado: " + id));
 	}
 
+	// esta parte es nueva
+	@Transactional(readOnly = true)
+	public List<Apoderado> listarPorColegio(Integer idColegio) {
+		if (!colegioRepository.existsById(idColegio)) {
+			throw new ResourceNotFoundException("Colegio no encontrado: " + idColegio);
+		}
+		List<Integer> ids = colegioApoderadoRepository.findByIdColegio(idColegio).stream()
+				.map(ca -> ca.getIdApoderado())
+				.toList();
+		if (ids.isEmpty()) {
+			return List.of();
+		}
+		return apoderadoRepository.findAllById(ids).stream()
+				.sorted(Comparator.comparing(Apoderado::getApellidos).thenComparing(Apoderado::getNombres))
+				.toList();
+	}
+
 	@Transactional
 	public Apoderado crear(ApoderadoRequest req) {
 		if (req.idUsuario() != null) {
@@ -39,12 +63,14 @@ public class ApoderadoService {
 				throw new ConflictException("El usuario ya está asociado a un apoderado");
 			});
 		}
-		if (apoderadoRepository.existsByRut(req.rut())) {
+		// esto es nuevo
+		String rutNorm = ChileValidacion.formatearRutConGuion(req.rut());
+		if (apoderadoRepository.existsByRut(rutNorm)) {
 			throw new ConflictException("El RUT ya está registrado");
 		}
 		Apoderado a = Apoderado.builder()
 				.idUsuario(req.idUsuario())
-				.rut(req.rut().trim())
+				.rut(rutNorm)
 				.nombres(req.nombres())
 				.apellidos(req.apellidos())
 				.email(emailObligatorioONull(req.email()))
@@ -68,10 +94,12 @@ public class ApoderadoService {
 				a.setIdUsuario(req.idUsuario());
 			}
 		}
-		if (!req.rut().equals(a.getRut()) && apoderadoRepository.existsByRut(req.rut())) {
+		// esto es nuevo
+		String rutNorm = ChileValidacion.formatearRutConGuion(req.rut());
+		if (!rutNorm.equals(a.getRut()) && apoderadoRepository.existsByRut(rutNorm)) {
 			throw new ConflictException("El RUT ya está registrado");
 		}
-		a.setRut(req.rut().trim());
+		a.setRut(rutNorm);
 		a.setNombres(req.nombres());
 		a.setApellidos(req.apellidos());
 		a.setEmail(emailObligatorioONull(req.email()));

@@ -38,21 +38,24 @@ public class CursoController {
 		return cursoService.obtener(id);
 	}
 
+	// esta parte es nueva
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoRequest(#body))")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Curso crear(@Valid @RequestBody CursoRequest body) {
 		return cursoService.crear(body);
 	}
 
+	// esta parte es nueva
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoId(#id) and @authz.colegioPuedeGestionarCursoRequest(#body))")
 	public Curso actualizar(@PathVariable Integer id, @Valid @RequestBody CursoRequest body) {
 		return cursoService.actualizar(id, body);
 	}
 
+	// esta parte es nueva
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoId(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		cursoService.eliminar(id);

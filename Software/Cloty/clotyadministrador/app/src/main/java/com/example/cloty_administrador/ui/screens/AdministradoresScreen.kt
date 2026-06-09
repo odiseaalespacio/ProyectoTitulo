@@ -36,7 +36,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.cloty_administrador.data.api.AdministradorCompletoRequest
 import com.example.cloty_administrador.ui.ClotyViewModel
+import com.example.cloty_administrador.ui.components.EmailTextField
 import com.example.cloty_administrador.ui.components.MessageBanner
+import com.example.cloty_administrador.ui.components.RutTextField
+import com.example.cloty_administrador.ui.components.TelefonoChilenoTextField
+import com.example.cloty_administrador.ui.components.ValidationMessageBanner
+import com.example.cloty_administrador.util.ChileValidators
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,6 +110,16 @@ private fun AdminFormDialog(
     var apellidos by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var telefono by rememberSaveable { mutableStateOf("") }
+    // esto es nuevo
+    var showValidation by rememberSaveable { mutableStateOf(false) }
+
+    fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
+        ChileValidators.mensajeErrorRut(rut, mostrarVacios = mostrarVacios),
+        ChileValidators.mensajeErrorEmail(email, obligatorio = true, mostrarVacios = mostrarVacios),
+        ChileValidators.mensajeErrorTelefono(telefono, mostrarVacios = mostrarVacios),
+        if (username.isBlank() && mostrarVacios) "Debe ingresar un usuario" else null,
+        if (password.length < 4 && mostrarVacios) "La contraseña debe tener al menos 4 caracteres" else null
+    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -113,24 +128,31 @@ private fun AdminFormDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(username, { username = it }, label = { Text("Usuario") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(password, { password = it }, label = { Text("Contraseña") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(rut, { rut = it }, label = { Text("RUT") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                // esto es nuevo
+                RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                 OutlinedTextField(nombres, { nombres = it }, label = { Text("Nombres") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(apellidos, { apellidos = it }, label = { Text("Apellidos") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(email, { email = it }, label = { Text("Email") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(telefono, { telefono = it }, label = { Text("Teléfono") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                EmailTextField(email, { email = it; showValidation = false }, obligatorio = true, showValidation = showValidation)
+                TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
+                ValidationMessageBanner(if (showValidation) errorValidacion(true) else null)
             }
         },
         confirmButton = {
             Button(
                 onClick = {
+                    val err = errorValidacion(true)
+                    if (err != null) {
+                        showValidation = true
+                        return@Button
+                    }
                     onConfirm(
                         AdministradorCompletoRequest(
-                            username.trim(), password, rut.trim(), nombres.trim(),
+                            username.trim(), password, ChileValidators.normalizarRutParaApi(rut), nombres.trim(),
                             apellidos.trim(), email.trim(), telefono.trim().ifBlank { null }
                         )
                     )
                 },
-                enabled = !loading && username.isNotBlank() && password.length >= 4
+                enabled = !loading
             ) { Text("Guardar") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }

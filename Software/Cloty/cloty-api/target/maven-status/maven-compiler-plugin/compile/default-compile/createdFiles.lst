@@ -1,6 +1,7 @@
 com\cloty\dto\AuthTokenResponse.class
 com\cloty\dto\OperacionPrendaResponse.class
 com\cloty\dto\ScanPrendaRequest.class
+com\cloty\validation\RutChileno.class
 com\cloty\domain\Notificacion.class
 com\cloty\security\RestAuthenticationEntryPoint.class
 com\cloty\domain\Administrador.class
@@ -21,6 +22,7 @@ com\cloty\security\JwtService.class
 com\cloty\dto\ActivarCuentaApoderadoRequest.class
 com\cloty\dto\UsuarioUpdateRequest.class
 com\cloty\service\CursoService.class
+com\cloty\service\EmailService.class
 com\cloty\service\TarjetaService.class
 com\cloty\security\SecurityAuthz.class
 com\cloty\service\ColegioService.class
@@ -29,6 +31,7 @@ com\cloty\config\MethodSecurityConfig.class
 com\cloty\dto\ColegioApoderadoRequest.class
 com\cloty\web\ColegioController.class
 com\cloty\domain\EstadoTarjeta.class
+com\cloty\validation\RutChilenoValidator.class
 com\cloty\web\ColegioOperacionController.class
 com\cloty\web\error\ConflictException.class
 com\cloty\config\PasswordEncoderConfig.class
@@ -75,12 +78,15 @@ com\cloty\repo\NotificacionRepository.class
 com\cloty\domain\Alumno.class
 com\cloty\domain\Usuario$UsuarioBuilder.class
 com\cloty\repo\UsuarioRepository.class
+com\cloty\validation\TelefonoChileno.class
 com\cloty\dto\TarjetaRequest.class
 com\cloty\domain\Colegio.class
 com\cloty\dto\UsuarioCreateRequest.class
 com\cloty\security\JwtAuthenticationFilter.class
+com\cloty\validation\ChileValidacion.class
 com\cloty\repo\CursoRepository.class
 com\cloty\domain\Tarjeta$TarjetaBuilder.class
+com\cloty\config\AsyncConfig.class
 com\cloty\service\AuthService.class
 com\cloty\dto\ApoderadoRequest.class
 com\cloty\domain\Tarjeta.class
@@ -88,6 +94,7 @@ com\cloty\dto\RegistroApoderadoRequest.class
 com\cloty\domain\Curso.class
 com\cloty\service\CargaMasivaService.class
 com\cloty\web\ApoderadoController.class
+com\cloty\validation\TelefonoChilenoValidator.class
 com\cloty\web\CursoController.class
 com\cloty\domain\Apoderado$ApoderadoBuilder.class
 com\cloty\domain\Notificacion$NotificacionBuilder.class

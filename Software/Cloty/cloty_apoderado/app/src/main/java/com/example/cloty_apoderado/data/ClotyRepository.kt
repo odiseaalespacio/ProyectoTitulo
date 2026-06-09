@@ -39,4 +39,10 @@ class ClotyRepository(context: android.content.Context) {
 
     suspend fun cambiarContrasena(actual: String, nueva: String) =
         api.cambiarContrasena(CambiarContrasenaRequest(actual, nueva))
+
+    // esta parte es nueva
+    suspend fun obtenerApoderado(id: Int) = api.obtenerApoderado(id)
+
+    suspend fun actualizarApoderado(id: Int, req: com.example.cloty_apoderado.data.api.ApoderadoRequest) =
+        api.actualizarApoderado(id, req)
 }

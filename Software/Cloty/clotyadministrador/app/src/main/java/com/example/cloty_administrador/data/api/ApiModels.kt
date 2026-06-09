@@ -40,6 +40,53 @@ data class ColegioRequest(
     val direccion: String? = null
 )
 
+// esta parte es nueva
+data class ApoderadoRequest(
+    val idUsuario: Int? = null,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String? = null,
+    val telefono: String? = null,
+    val direccion: String? = null
+)
+
+// esta parte es nueva
+data class AlumnoRequest(
+    val idColegio: Int,
+    val idApoderado: Int,
+    val idCurso: Int,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val estado: Boolean? = true
+)
+
+// esta parte es nueva
+data class ColegioApoderadoRequest(
+    val idColegio: Int,
+    val idApoderado: Int
+)
+
+// esta parte es nueva
+data class ColegioApoderado(
+    val idColegioApoderado: Int,
+    val idColegio: Int,
+    val idApoderado: Int
+)
+
+// esta parte es nueva
+data class Apoderado(
+    val idApoderado: Int,
+    val idUsuario: Int?,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String?,
+    val telefono: String?,
+    val direccion: String?
+)
+
 data class CursoRequest(
     val idColegio: Int,
     val nombre: String,

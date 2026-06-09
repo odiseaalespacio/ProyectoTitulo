@@ -4,6 +4,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface ClotyApi {
@@ -19,6 +20,13 @@ interface ClotyApi {
 
     @POST("api/auth/cambiar-contrasena")
     suspend fun cambiarContrasena(@Body body: CambiarContrasenaRequest)
+
+    // esta parte es nueva
+    @GET("api/apoderados/{id}")
+    suspend fun obtenerApoderado(@Path("id") id: Int): Apoderado
+
+    @PUT("api/apoderados/{id}")
+    suspend fun actualizarApoderado(@Path("id") id: Int, @Body body: ApoderadoRequest): Apoderado
 
     @GET("api/auth/mis-pupilos")
     suspend fun misPupilos(): List<PupiloResumen>

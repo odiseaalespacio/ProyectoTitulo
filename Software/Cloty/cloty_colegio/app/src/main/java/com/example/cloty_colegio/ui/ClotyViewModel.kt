@@ -4,7 +4,15 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cloty_colegio.data.ClotyRepository
+import com.example.cloty_colegio.data.api.Alumno
+import com.example.cloty_colegio.data.api.AlumnoRequest
+import com.example.cloty_colegio.data.api.Apoderado
+import com.example.cloty_colegio.data.api.ApoderadoRequest
+import com.example.cloty_colegio.data.api.Colegio
 import com.example.cloty_colegio.data.api.ColegioDashboard
+import com.example.cloty_colegio.data.api.ColegioRequest
+import com.example.cloty_colegio.data.api.Curso
+import com.example.cloty_colegio.data.api.CursoRequest
 import com.example.cloty_colegio.data.api.OperacionPrendaResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +39,13 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _nombreColegio = MutableStateFlow<String?>(null)
     val nombreColegio: StateFlow<String?> = _nombreColegio.asStateFlow()
 
+    // esta parte es nueva
+    private val _idColegio = MutableStateFlow<Int?>(null)
+    val idColegio: StateFlow<Int?> = _idColegio.asStateFlow()
+
+    private val _colegio = MutableStateFlow<Colegio?>(null)
+    val colegio: StateFlow<Colegio?> = _colegio.asStateFlow()
+
     private val _dashboard = MutableStateFlow<ColegioDashboard?>(null)
     val dashboard: StateFlow<ColegioDashboard?> = _dashboard.asStateFlow()
 
@@ -42,6 +57,16 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _nfcScanCount = MutableStateFlow(0)
     val nfcScanCount: StateFlow<Int> = _nfcScanCount.asStateFlow()
+
+    // esta parte es nueva
+    private val _apoderados = MutableStateFlow<List<Apoderado>>(emptyList())
+    val apoderados: StateFlow<List<Apoderado>> = _apoderados.asStateFlow()
+
+    private val _alumnos = MutableStateFlow<List<Alumno>>(emptyList())
+    val alumnos: StateFlow<List<Alumno>> = _alumnos.asStateFlow()
+
+    private val _cursos = MutableStateFlow<List<Curso>>(emptyList())
+    val cursos: StateFlow<List<Curso>> = _cursos.asStateFlow()
 
     private val scanMutex = Mutex()
 
@@ -69,17 +94,114 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         repo.logout()
         _dashboard.value = null
         _nombreColegio.value = null
+        _idColegio.value = null
+        _colegio.value = null
         _ultimaOperacion.value = null
+        _apoderados.value = emptyList()
+        _alumnos.value = emptyList()
+        _cursos.value = emptyList()
     }
 
     fun cargarPerfil() = launchTask {
         val me = repo.me()
+        _idColegio.value = me.idColegio
         _nombreColegio.value = me.username
+        // esta parte es nueva
+        me.idColegio?.let { id ->
+            _colegio.value = repo.obtenerColegio(id)
+            _nombreColegio.value = _colegio.value?.nombre ?: me.username
+        }
     }
 
     fun cargarDashboard() = launchTask {
         _dashboard.value = repo.dashboard()
         _nombreColegio.value = _dashboard.value?.nombreColegio ?: _nombreColegio.value
+        _idColegio.value = _dashboard.value?.idColegio ?: _idColegio.value
+    }
+
+    // esta parte es nueva
+    fun cargarGestion() = launchTask {
+        val id = requireColegioId()
+        _apoderados.value = repo.listarApoderadosPorColegio(id)
+        _alumnos.value = repo.listarAlumnosPorColegio(id)
+        _cursos.value = repo.listarCursos(id)
+    }
+
+    // esta parte es nueva
+    fun cargarColegio() = launchTask {
+        val id = requireColegioId()
+        _colegio.value = repo.obtenerColegio(id)
+        _nombreColegio.value = _colegio.value?.nombre
+    }
+
+    fun actualizarColegio(req: ColegioRequest) = launchTask {
+        val id = requireColegioId()
+        _colegio.value = repo.actualizarColegio(id, req)
+        _nombreColegio.value = _colegio.value?.nombre
+        _message.value = "Datos del establecimiento actualizados"
+    }
+
+    fun crearApoderado(req: ApoderadoRequest) = launchTask {
+        val id = requireColegioId()
+        repo.crearApoderadoEnColegio(id, req)
+        _message.value = "Apoderado registrado"
+        cargarGestionInternal(id)
+    }
+
+    fun actualizarApoderado(id: Int, req: ApoderadoRequest) = launchTask {
+        val idColegio = requireColegioId()
+        repo.actualizarApoderado(id, req)
+        _message.value = "Apoderado actualizado"
+        cargarGestionInternal(idColegio)
+    }
+
+    fun eliminarApoderado(id: Int) = launchTask {
+        val idColegio = requireColegioId()
+        repo.eliminarApoderado(id)
+        _message.value = "Apoderado eliminado"
+        cargarGestionInternal(idColegio)
+    }
+
+    fun crearAlumno(req: AlumnoRequest) = launchTask {
+        val idColegio = requireColegioId()
+        repo.crearAlumno(req)
+        _message.value = "Alumno registrado"
+        cargarGestionInternal(idColegio)
+    }
+
+    fun actualizarAlumno(id: Int, req: AlumnoRequest) = launchTask {
+        val idColegio = requireColegioId()
+        repo.actualizarAlumno(id, req)
+        _message.value = "Alumno actualizado"
+        cargarGestionInternal(idColegio)
+    }
+
+    fun eliminarAlumno(id: Int) = launchTask {
+        val idColegio = requireColegioId()
+        repo.eliminarAlumno(id)
+        _message.value = "Alumno eliminado"
+        cargarGestionInternal(idColegio)
+    }
+
+    fun crearCurso(req: CursoRequest) = launchTask {
+        val idColegio = requireColegioId()
+        repo.crearCurso(req)
+        _message.value = "Curso creado"
+        cargarGestionInternal(idColegio)
+    }
+
+    fun actualizarCurso(id: Int, req: CursoRequest) = launchTask {
+        val idColegio = requireColegioId()
+        repo.actualizarCurso(id, req)
+        _message.value = "Curso actualizado"
+        cargarGestionInternal(idColegio)
+    }
+
+    fun eliminarCurso(id: Int) = launchTask {
+        val idColegio = requireColegioId()
+        repo.eliminarCurso(id)
+        _message.value = "Curso eliminado"
+        cargarGestionInternal(idColegio)
     }
 
     fun procesarEscaneo(uid: String) {
@@ -114,6 +236,21 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _message.value = null
     }
 
+    // esta parte es nueva
+    private suspend fun cargarGestionInternal(idColegio: Int) {
+        _apoderados.value = repo.listarApoderadosPorColegio(idColegio)
+        _alumnos.value = repo.listarAlumnosPorColegio(idColegio)
+        _cursos.value = repo.listarCursos(idColegio)
+    }
+
+    private fun requireColegioId(): Int {
+        val id = _idColegio.value
+        if (id == null || id <= 0) {
+            throw IllegalStateException("No se pudo identificar el colegio de la sesión")
+        }
+        return id
+    }
+
     private fun launchTask(block: suspend () -> Unit) {
         viewModelScope.launch {
             _loading.value = true
@@ -128,13 +265,20 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    // esta parte es nueva
     private fun parseError(e: Exception): String {
         val raw = e.message ?: "Error desconocido"
         return when {
             raw.contains("401") || raw.contains("403") -> "Sesión expirada o sin permisos"
-            raw.contains("404") -> "Tarjeta no registrada en el sistema"
-            raw.contains("400") -> raw.substringAfter("400").ifBlank { "Solicitud inválida" }
-            else -> raw
+            raw.contains("404") -> "Recurso no encontrado"
+            raw.contains("409") -> extractApiMessage(raw) ?: "Conflicto: el registro ya existe o tiene datos vinculados"
+            raw.contains("400") -> extractApiMessage(raw) ?: "Solicitud inválida"
+            else -> extractApiMessage(raw) ?: raw
         }
+    }
+
+    private fun extractApiMessage(raw: String): String? {
+        val msg = Regex("\"message\"\\s*:\\s*\"([^\"]+)\"").find(raw)?.groupValues?.getOrNull(1)
+        return msg?.replace("\\u0027", "'")
     }
 }

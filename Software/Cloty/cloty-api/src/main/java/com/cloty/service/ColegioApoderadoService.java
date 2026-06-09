@@ -20,6 +20,8 @@ public class ColegioApoderadoService {
 	private final ColegioApoderadoRepository colegioApoderadoRepository;
 	private final ColegioRepository colegioRepository;
 	private final ApoderadoRepository apoderadoRepository;
+	// esto es nuevo
+	private final EmailService emailService;
 
 	@Transactional(readOnly = true)
 	public List<ColegioApoderado> listarTodos() {
@@ -63,7 +65,12 @@ public class ColegioApoderadoService {
 				.idColegio(req.idColegio())
 				.idApoderado(req.idApoderado())
 				.build();
-		return colegioApoderadoRepository.save(ca);
+		ca = colegioApoderadoRepository.save(ca);
+		// esto es nuevo
+		apoderadoRepository.findById(req.idApoderado()).ifPresent(apoderado ->
+				colegioRepository.findById(req.idColegio()).ifPresent(colegio ->
+						emailService.enviarCargaApoderadoEnColegio(apoderado, colegio)));
+		return ca;
 	}
 
 	@Transactional

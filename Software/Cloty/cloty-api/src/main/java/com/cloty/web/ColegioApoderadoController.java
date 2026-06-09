@@ -49,15 +49,17 @@ public class ColegioApoderadoController {
 		return colegioApoderadoService.obtener(id);
 	}
 
+	// esta parte es nueva
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarColegioApoderadoRequest(#body))")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ColegioApoderado crear(@Valid @RequestBody ColegioApoderadoRequest body) {
 		return colegioApoderadoService.crear(body);
 	}
 
+	// esta parte es nueva
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeEliminarColegioApoderado(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		colegioApoderadoService.eliminar(id);

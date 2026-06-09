@@ -6,12 +6,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,24 +25,95 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.cloty_apoderado.ui.ClotyViewModel
+import com.example.cloty_apoderado.ui.components.EmailTextField
 import com.example.cloty_apoderado.ui.components.MessageBanner
+import com.example.cloty_apoderado.ui.components.TelefonoChilenoTextField
+import com.example.cloty_apoderado.ui.components.ValidationMessageBanner
+import com.example.cloty_apoderado.util.ChileValidators
 
 @Composable
 fun CuentaScreen(viewModel: ClotyViewModel, contentPadding: PaddingValues, onLogout: () -> Unit) {
     var actual by rememberSaveable { mutableStateOf("") }
     var nueva by rememberSaveable { mutableStateOf("") }
     var confirmar by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var telefono by rememberSaveable { mutableStateOf("") }
+    var direccion by rememberSaveable { mutableStateOf("") }
+    // esto es nuevo
+    var showValidation by rememberSaveable { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     val nombre by viewModel.nombreUsuario.collectAsState()
+    val apoderado by viewModel.apoderado.collectAsState()
+
+    LaunchedEffect(Unit) { viewModel.cargarPerfil() }
+
+    LaunchedEffect(apoderado) {
+        apoderado?.let { a ->
+            email = a.email.orEmpty()
+            telefono = a.telefono.orEmpty()
+            direccion = a.direccion.orEmpty()
+        }
+    }
 
     Column(
-        Modifier.fillMaxSize().padding(contentPadding).padding(16.dp),
+        Modifier.fillMaxSize()
+            .padding(contentPadding)
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("Mi cuenta", style = MaterialTheme.typography.titleLarge)
         nombre?.let { Text("Usuario: $it", style = MaterialTheme.typography.bodyMedium) }
+
+        // esta parte es nueva
+        Text("Mis datos", style = MaterialTheme.typography.titleMedium)
+        apoderado?.let { a ->
+            OutlinedTextField(
+                "${a.nombres} ${a.apellidos}",
+                {},
+                label = { Text("Nombre") },
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            OutlinedTextField(
+                a.rut,
+                {},
+                label = { Text("RUT") },
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
+        // esto es nuevo
+        EmailTextField(email, { email = it; showValidation = false }, label = "Correo", showValidation = showValidation)
+        TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
+        OutlinedTextField(direccion, { direccion = it }, label = { Text("Dirección") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        ValidationMessageBanner(
+            if (showValidation) {
+                ChileValidators.primerMensajeError(
+                    ChileValidators.mensajeErrorEmail(email),
+                    ChileValidators.mensajeErrorTelefono(telefono)
+                )
+            } else null
+        )
+        Button(
+            onClick = {
+                val err = ChileValidators.primerMensajeError(
+                    ChileValidators.mensajeErrorEmail(email),
+                    ChileValidators.mensajeErrorTelefono(telefono)
+                )
+                if (err != null) {
+                    showValidation = true
+                    return@Button
+                }
+                viewModel.actualizarMisDatos(email, telefono, direccion)
+            },
+            enabled = !loading && apoderado != null,
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Guardar mis datos") }
 
         Text("Cambiar contraseña", style = MaterialTheme.typography.titleMedium)
         OutlinedTextField(

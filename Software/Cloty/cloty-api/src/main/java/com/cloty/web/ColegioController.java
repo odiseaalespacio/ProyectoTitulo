@@ -45,8 +45,9 @@ public class ColegioController {
 		return colegioService.crear(body);
 	}
 
+	// esta parte es nueva
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.ownsColegio(#id))")
 	public Colegio actualizar(@PathVariable Integer id, @Valid @RequestBody ColegioRequest body) {
 		return colegioService.actualizar(id, body);
 	}
