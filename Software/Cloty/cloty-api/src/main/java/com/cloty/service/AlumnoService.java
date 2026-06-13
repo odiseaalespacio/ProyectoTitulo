@@ -27,6 +27,7 @@ public class AlumnoService {
 	private final ColegioRepository colegioRepository;
 	private final ApoderadoRepository apoderadoRepository;
 	private final CursoRepository cursoRepository;
+	private final CascadeEliminacionService cascadeEliminacionService;
 
 	@Transactional(readOnly = true)
 	public List<Alumno> listarPorColegio(Integer idColegio) {
@@ -129,10 +130,7 @@ public class AlumnoService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!alumnoRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Alumno no encontrado: " + id);
-		}
-		alumnoRepository.deleteById(id);
+		cascadeEliminacionService.eliminarAlumnoCompleto(id);
 	}
 
 	private void validarReferencias(AlumnoRequest req) {

@@ -16,6 +16,12 @@ interface ClotyApi {
     @POST("api/auth/login")
     suspend fun login(@Body body: LoginRequest): AuthTokenResponse
 
+    @POST("api/auth/solicitar-recuperacion-contrasena")
+    suspend fun solicitarRecuperacionContrasena(@Body body: SolicitarCodigoActivacionRequest): SolicitarCodigoActivacionResponse
+
+    @POST("api/auth/restablecer-contrasena")
+    suspend fun restablecerContrasena(@Body body: RestablecerContrasenaRequest)
+
     @GET("api/auth/me")
     suspend fun me(): AuthMeResponse
 
@@ -28,11 +34,23 @@ interface ClotyApi {
     @POST("api/usuarios")
     suspend fun crearUsuario(@Body body: UsuarioCreateRequest): Usuario
 
+    @PUT("api/usuarios/{id}")
+    suspend fun actualizarUsuario(@Path("id") id: Int, @Body body: UsuarioUpdateRequest): Usuario
+
+    @DELETE("api/usuarios/{id}")
+    suspend fun eliminarUsuario(@Path("id") id: Int)
+
     @GET("api/administradores")
     suspend fun listarAdministradores(): List<Administrador>
 
     @POST("api/administradores/completo")
     suspend fun crearAdministrador(@Body body: AdministradorCompletoRequest): Administrador
+
+    @PUT("api/administradores/{id}")
+    suspend fun actualizarAdministrador(@Path("id") id: Int, @Body body: AdministradorRequest): Administrador
+
+    @DELETE("api/administradores/{id}")
+    suspend fun eliminarAdministrador(@Path("id") id: Int)
 
     @GET("api/colegios")
     suspend fun listarColegios(): List<Colegio>
@@ -47,6 +65,10 @@ interface ClotyApi {
     // esta parte es nueva
     @DELETE("api/colegios/{id}")
     suspend fun eliminarColegio(@Path("id") id: Int)
+
+    // esta parte es nueva
+    @GET("api/apoderados/colegio/{idColegio}")
+    suspend fun listarApoderadosPorColegio(@Path("idColegio") idColegio: Int): List<Apoderado>
 
     // esta parte es nueva
     @GET("api/apoderados")
@@ -93,6 +115,12 @@ interface ClotyApi {
 
     @POST("api/cursos")
     suspend fun crearCurso(@Body body: CursoRequest): Curso
+
+    @PUT("api/cursos/{id}")
+    suspend fun actualizarCurso(@Path("id") id: Int, @Body body: CursoRequest): Curso
+
+    @DELETE("api/cursos/{id}")
+    suspend fun eliminarCurso(@Path("id") id: Int)
 
     @GET("api/alumnos/curso/{idCurso}")
     suspend fun listarAlumnosPorCurso(@Path("idCurso") idCurso: Int): List<Alumno>

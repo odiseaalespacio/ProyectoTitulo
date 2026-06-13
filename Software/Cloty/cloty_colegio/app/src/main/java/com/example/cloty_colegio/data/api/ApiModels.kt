@@ -17,10 +17,27 @@ data class AuthMeResponse(
     val idApoderado: Int?
 )
 
+data class SolicitarCodigoActivacionRequest(val rut: String)
+
+data class RestablecerContrasenaRequest(
+    val rut: String,
+    val codigo: String,
+    val password: String
+)
+
+data class SolicitarCodigoActivacionResponse(
+    val correoEnmascarado: String?,
+    val mensaje: String?
+)
+
+data class ValidarCodigoActivacionRequest(
+    val rut: String,
+    val codigo: String
+)
+
 data class ActivarCuentaColegioRequest(
     val rut: String,
-    val email: String,
-    val telefono: String,
+    val codigo: String,
     val password: String
 )
 
@@ -64,7 +81,7 @@ data class ColegioRequest(
     val idUsuario: Int? = null,
     val rut: String,
     val nombre: String,
-    val email: String? = null,
+    val email: String,
     val telefono: String? = null,
     val direccion: String? = null
 )

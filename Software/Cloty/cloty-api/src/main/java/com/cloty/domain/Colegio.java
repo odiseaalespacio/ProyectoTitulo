@@ -37,7 +37,7 @@ public class Colegio {
 	@Column(name = "nombre", nullable = false, length = 150)
 	private String nombre;
 
-	/** Se completa al activar la cuenta del colegio. */
+	/** Correo de contacto; obligatorio al registrar. Se usa para avisos y activación de cuenta. */
 	@Column(name = "email", length = 150)
 	private String email;
 

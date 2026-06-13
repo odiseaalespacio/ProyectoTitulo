@@ -3,6 +3,8 @@ package com.example.cloty_administrador.data
 import android.content.Context
 import android.net.Uri
 import com.example.cloty_administrador.data.api.AdministradorCompletoRequest
+import com.example.cloty_administrador.data.api.AdministradorRequest
+import com.example.cloty_administrador.data.api.UsuarioUpdateRequest
 import com.example.cloty_administrador.data.api.ApiClient
 import com.example.cloty_administrador.data.api.AlumnoRequest
 import com.example.cloty_administrador.data.api.ApoderadoRequest
@@ -27,6 +29,16 @@ class ClotyRepository(context: Context) {
     }
 
     private val api get() = ApiClient.api
+
+    suspend fun solicitarRecuperacionContrasena(rut: String) =
+        api.solicitarRecuperacionContrasena(
+            com.example.cloty_administrador.data.api.SolicitarCodigoActivacionRequest(rut)
+        )
+
+    suspend fun restablecerContrasena(rut: String, codigo: String, password: String) =
+        api.restablecerContrasena(
+            com.example.cloty_administrador.data.api.RestablecerContrasenaRequest(rut, codigo, password)
+        )
 
     suspend fun login(identificador: String, password: String): String {
         val response = api.login(LoginRequest(identificador, password))
@@ -66,16 +78,28 @@ class ClotyRepository(context: Context) {
 
     suspend fun logout() = tokenStore.clear()
 
+    suspend fun listarUsuarios() = api.listarUsuarios()
+
     suspend fun listarSuperUsuarios() =
         api.listarUsuarios().filter { it.rol == "SUPER_USUARIO" }
 
     suspend fun crearSuperUsuario(req: com.example.cloty_administrador.data.api.UsuarioCreateRequest) =
         api.crearUsuario(req)
 
+    suspend fun actualizarUsuario(id: Int, req: UsuarioUpdateRequest) =
+        api.actualizarUsuario(id, req)
+
+    suspend fun eliminarUsuario(id: Int) = api.eliminarUsuario(id)
+
     suspend fun listarAdministradores() = api.listarAdministradores()
 
     suspend fun crearAdministrador(req: AdministradorCompletoRequest) =
         api.crearAdministrador(req)
+
+    suspend fun actualizarAdministrador(id: Int, req: AdministradorRequest) =
+        api.actualizarAdministrador(id, req)
+
+    suspend fun eliminarAdministrador(id: Int) = api.eliminarAdministrador(id)
 
     suspend fun listarColegios() = api.listarColegios()
 
@@ -88,11 +112,8 @@ class ClotyRepository(context: Context) {
     suspend fun eliminarColegio(id: Int) = api.eliminarColegio(id)
 
     // esta parte es nueva
-    suspend fun listarApoderadosPorColegio(idColegio: Int): List<com.example.cloty_administrador.data.api.Apoderado> {
-        val ids = api.listarColegioApoderados(idColegio).map { it.idApoderado }.toSet()
-        if (ids.isEmpty()) return emptyList()
-        return api.listarApoderados().filter { it.idApoderado in ids }
-    }
+    suspend fun listarApoderadosPorColegio(idColegio: Int): List<com.example.cloty_administrador.data.api.Apoderado> =
+        api.listarApoderadosPorColegio(idColegio)
 
     // esta parte es nueva
     suspend fun crearApoderadoEnColegio(idColegio: Int, req: ApoderadoRequest): com.example.cloty_administrador.data.api.Apoderado {
@@ -122,6 +143,10 @@ class ClotyRepository(context: Context) {
     suspend fun listarCursos(idColegio: Int) = api.listarCursos(idColegio)
 
     suspend fun crearCurso(req: CursoRequest) = api.crearCurso(req)
+
+    suspend fun actualizarCurso(id: Int, req: CursoRequest) = api.actualizarCurso(id, req)
+
+    suspend fun eliminarCurso(id: Int) = api.eliminarCurso(id)
 
     suspend fun listarAlumnosPorCurso(idCurso: Int) = api.listarAlumnosPorCurso(idCurso)
 

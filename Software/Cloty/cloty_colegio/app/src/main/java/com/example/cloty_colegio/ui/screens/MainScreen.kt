@@ -44,6 +44,10 @@ fun MainScreen(
         viewModel.cargarDashboard()
     }
 
+    LaunchedEffect(tab, gestionScreen) {
+        viewModel.clearMessage()
+    }
+
     LaunchedEffect(scanCount) {
         if (!ultimoUid.isNullOrBlank() && scanCount > 0 && scanCount != lastProcessedScan) {
             lastProcessedScan = scanCount

@@ -37,12 +37,17 @@ import com.example.cloty_colegio.ui.ClotyViewModel
 import com.example.cloty_colegio.ui.components.MessageBanner
 
 @Composable
-fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
+fun LoginScreen(
+    viewModel: ClotyViewModel,
+    onActivarCuenta: () -> Unit = {},
+    onRecuperarContrasena: () -> Unit = {}
+) {
     var identificador by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val message by viewModel.message.collectAsState()
 
     Column(
         Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(24.dp),
@@ -98,6 +103,7 @@ fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
         )
         Spacer(Modifier.height(16.dp))
         MessageBanner(error, true)
+        MessageBanner(message, false, Modifier.padding(top = 8.dp))
         Spacer(Modifier.height(8.dp))
         Button(
             onClick = { viewModel.login(identificador.trim(), password) },
@@ -107,6 +113,9 @@ fun LoginScreen(viewModel: ClotyViewModel, onActivarCuenta: () -> Unit = {}) {
             Text(if (loading) "Ingresando…" else "Ingresar")
         }
         Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onRecuperarContrasena) {
+            Text("¿Olvidó su contraseña?")
+        }
         TextButton(onClick = onActivarCuenta) {
             Text("¿Primera vez? Activar cuenta del colegio")
         }

@@ -1,5 +1,6 @@
 package com.cloty.service;
 
+import com.cloty.domain.Administrador;
 import com.cloty.domain.Apoderado;
 import com.cloty.domain.Colegio;
 import com.cloty.domain.RolUsuario;
@@ -11,13 +12,20 @@ import com.cloty.dto.AuthTokenResponse;
 import com.cloty.dto.CambiarContrasenaRequest;
 import com.cloty.dto.LoginRequest;
 import com.cloty.dto.RegistroApoderadoRequest;
+import com.cloty.dto.RestablecerContrasenaRequest;
+import com.cloty.dto.SolicitarCodigoActivacionRequest;
+import com.cloty.dto.SolicitarCodigoActivacionResponse;
+import com.cloty.dto.ValidarCodigoActivacionRequest;
+import com.cloty.repo.AdministradorRepository;
 import com.cloty.repo.ApoderadoRepository;
+import com.cloty.repo.ColegioApoderadoRepository;
 import com.cloty.repo.ColegioRepository;
 import com.cloty.repo.UsuarioRepository;
 import com.cloty.security.ClotyUserDetails;
 import com.cloty.security.ClotyUserDetailsService;
 import com.cloty.security.JwtService;
 import com.cloty.util.NombreUsuarioGenerator;
+import com.cloty.validation.ChileValidacion;
 import com.cloty.web.error.BadRequestException;
 import com.cloty.web.error.ConflictException;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +35,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -37,11 +46,14 @@ public class AuthService {
 	private final UsuarioRepository usuarioRepository;
 	private final ApoderadoRepository apoderadoRepository;
 	private final ColegioRepository colegioRepository;
+	private final ColegioApoderadoRepository colegioApoderadoRepository;
+	private final AdministradorRepository administradorRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final ClotyUserDetailsService userDetailsService;
 	private final JwtService jwtService;
 	// esto es nuevo
 	private final EmailService emailService;
+	private final ActivacionCodigoService activacionCodigoService;
 
 	@Value("${cloty.jwt.expiration-ms:86400000}")
 	private long expirationMs;
@@ -80,7 +92,7 @@ public class AuthService {
 
 	@Transactional
 	public AuthTokenResponse registroApoderado(RegistroApoderadoRequest req) {
-		String rutTrim = req.rut().trim();
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
 		validarEmailFormatoSiPresente(req.email());
 
 		apoderadoRepository.findByRut(rutTrim).ifPresent(apo -> {
@@ -129,8 +141,112 @@ public class AuthService {
 	}
 
 	@Transactional
+	public SolicitarCodigoActivacionResponse solicitarCodigoApoderado(SolicitarCodigoActivacionRequest req) {
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
+		Apoderado a = apoderadoRepository.findByRut(rutTrim)
+				.orElseThrow(() -> new BadRequestException(
+						"No hay datos de apoderado con ese RUT. Si no fue cargado por un colegio, use el registro de apoderado."));
+		if (a.getIdUsuario() != null) {
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
+		}
+		if (a.getEmail() == null || a.getEmail().isBlank()) {
+			throw new BadRequestException("No hay correo registrado para este apoderado. Contacte al colegio.");
+		}
+		var vinculos = colegioApoderadoRepository.findByIdApoderado(a.getIdApoderado());
+		if (vinculos.isEmpty()) {
+			throw new BadRequestException("El apoderado no está asociado a ningún colegio. Contacte al colegio.");
+		}
+		Colegio colegio = colegioRepository.findById(vinculos.get(0).getIdColegio())
+				.orElseThrow(() -> new BadRequestException("No se encontró el colegio asociado."));
+		activacionCodigoService.emitirParaApoderado(a, colegio);
+		String correo = enmascararCorreo(a.getEmail());
+		return new SolicitarCodigoActivacionResponse(
+				correo,
+				"Se envió un código de activación al correo registrado (" + correo + ").");
+	}
+
+	@Transactional
+	public SolicitarCodigoActivacionResponse solicitarCodigoColegio(SolicitarCodigoActivacionRequest req) {
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
+		Colegio col = colegioRepository.findByRut(rutTrim)
+				.orElseThrow(() -> new BadRequestException(
+						"No hay colegio con ese RUT. Verifique los datos cargados por el administrador."));
+		if (col.getIdUsuario() != null) {
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
+		}
+		if (col.getEmail() == null || col.getEmail().isBlank()) {
+			throw new BadRequestException("No hay correo registrado para este colegio. Contacte al administrador.");
+		}
+		activacionCodigoService.emitirParaColegio(col);
+		String correo = enmascararCorreo(col.getEmail());
+		return new SolicitarCodigoActivacionResponse(
+				correo,
+				"Se envió un código de activación al correo registrado (" + correo + ").");
+	}
+
+	@Transactional
+	public SolicitarCodigoActivacionResponse solicitarRecuperacionContrasena(SolicitarCodigoActivacionRequest req) {
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
+		Usuario u = usuarioRepository.findByRut(rutTrim)
+				.orElseThrow(() -> new BadRequestException(
+						"No hay cuenta activa con ese RUT. Si aún no activó su cuenta, use la opción Activar cuenta."));
+		if (!Boolean.TRUE.equals(u.getEstado())) {
+			throw new BadRequestException("La cuenta está deshabilitada. Contacte al administrador.");
+		}
+		String email = resolverCorreoPorUsuario(u);
+		if (email == null || email.isBlank()) {
+			throw new BadRequestException(
+					"No hay correo registrado para recuperar la contraseña. Contacte al administrador.");
+		}
+		activacionCodigoService.emitirRecuperacionContrasena(u.getIdUsuario(), email);
+		String correo = enmascararCorreo(email);
+		return new SolicitarCodigoActivacionResponse(
+				correo,
+				"Se envió un código de recuperación al correo registrado (" + correo + ").");
+	}
+
+	@Transactional
+	public void restablecerContrasena(RestablecerContrasenaRequest req) {
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
+		Usuario u = usuarioRepository.findByRut(rutTrim)
+				.orElseThrow(() -> new BadRequestException("No hay cuenta con ese RUT."));
+		if (!Boolean.TRUE.equals(u.getEstado())) {
+			throw new BadRequestException("La cuenta está deshabilitada.");
+		}
+		activacionCodigoService.validarYConsumirRecuperacionContrasena(u.getIdUsuario(), req.codigo());
+		if (passwordEncoder.matches(req.password(), u.getPasswordHash())) {
+			throw new BadRequestException("La nueva contraseña debe ser distinta a la actual.");
+		}
+		u.setPasswordHash(passwordEncoder.encode(req.password()));
+		usuarioRepository.save(u);
+	}
+
+	@Transactional(readOnly = true)
+	public void validarCodigoApoderado(ValidarCodigoActivacionRequest req) {
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
+		Apoderado a = apoderadoRepository.findByRut(rutTrim)
+				.orElseThrow(() -> new BadRequestException("No hay datos de apoderado con ese RUT."));
+		if (a.getIdUsuario() != null) {
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
+		}
+		activacionCodigoService.verificarCodigoApoderado(a.getIdApoderado(), req.codigo());
+	}
+
+	@Transactional(readOnly = true)
+	public void validarCodigoColegio(ValidarCodigoActivacionRequest req) {
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
+		Colegio col = colegioRepository.findByRut(rutTrim)
+				.orElseThrow(() -> new BadRequestException(
+						"No hay colegio con ese RUT. Verifique los datos cargados por el administrador."));
+		if (col.getIdUsuario() != null) {
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
+		}
+		activacionCodigoService.verificarCodigoColegio(col.getIdColegio(), req.codigo());
+	}
+
+	@Transactional
 	public AuthTokenResponse activarCuentaApoderado(ActivarCuentaApoderadoRequest req) {
-		String rutTrim = req.rut().trim();
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
 		Apoderado a = apoderadoRepository.findByRut(rutTrim)
 				.orElseThrow(() -> new BadRequestException(
 						"No hay datos de apoderado con ese RUT. Si no fue cargado por un colegio, use POST /api/auth/registro-apoderado."));
@@ -140,6 +256,7 @@ public class AuthService {
 		if (usuarioRepository.existsByRut(rutTrim)) {
 			throw new ConflictException("El RUT ya está asociado a una cuenta");
 		}
+		activacionCodigoService.validarYConsumirApoderado(a.getIdApoderado(), req.codigo());
 		String username = NombreUsuarioGenerator.paraPersona(a.getNombres(), a.getApellidos(), rutTrim, usuarioRepository::existsByUsername);
 		Usuario u = Usuario.builder()
 				.username(username)
@@ -159,12 +276,7 @@ public class AuthService {
 
 	@Transactional
 	public AuthTokenResponse activarCuentaColegio(ActivarCuentaColegioRequest req) {
-		String rutTrim = req.rut().trim();
-		validarEmailFormatoSiPresente(req.email());
-		String emailNorm = normalizarEmail(req.email());
-		if (emailNorm == null) {
-			throw new BadRequestException("El correo es obligatorio");
-		}
+		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
 		Colegio col = colegioRepository.findByRut(rutTrim)
 				.orElseThrow(() -> new BadRequestException(
 						"No hay colegio con ese RUT. Verifique los datos cargados por el administrador."));
@@ -174,10 +286,10 @@ public class AuthService {
 		if (usuarioRepository.existsByRut(rutTrim)) {
 			throw new ConflictException("El RUT ya está asociado a una cuenta");
 		}
-		colegioRepository.findByEmailIgnoreCase(emailNorm).filter(c -> !c.getIdColegio().equals(col.getIdColegio()))
-				.ifPresent(c -> {
-					throw new ConflictException("El correo ya está registrado en otro colegio");
-				});
+		if (col.getEmail() == null || col.getEmail().isBlank()) {
+			throw new BadRequestException("El colegio no tiene correo registrado. Contacte al administrador.");
+		}
+		activacionCodigoService.validarYConsumirColegio(col.getIdColegio(), req.codigo());
 		String username = NombreUsuarioGenerator.paraColegio(col.getNombre(), rutTrim, usuarioRepository::existsByUsername);
 		Usuario u = Usuario.builder()
 				.username(username)
@@ -188,8 +300,6 @@ public class AuthService {
 				.build();
 		u = usuarioRepository.save(u);
 		col.setIdUsuario(u.getIdUsuario());
-		col.setEmail(emailNorm);
-		col.setTelefono(req.telefono().trim());
 		colegioRepository.save(col);
 		// esto es nuevo
 		emailService.enviarActivacionColegio(col, username);
@@ -249,6 +359,38 @@ public class AuthService {
 			return null;
 		}
 		return s.trim();
+	}
+
+	private String resolverCorreoPorUsuario(Usuario u) {
+		return switch (u.getRol()) {
+			case APODERADO -> apoderadoRepository.findByIdUsuario(u.getIdUsuario())
+					.map(Apoderado::getEmail)
+					.orElse(null);
+			case COLEGIO -> colegioRepository.findByIdUsuario(u.getIdUsuario())
+					.map(Colegio::getEmail)
+					.orElse(null);
+			case ADMINISTRADOR -> administradorRepository.findByIdUsuario(u.getIdUsuario())
+					.map(Administrador::getEmail)
+					.orElse(null);
+			case SUPER_USUARIO -> null;
+		};
+	}
+
+	private static String enmascararCorreo(String email) {
+		if (email == null || email.isBlank()) {
+			return "";
+		}
+		String t = email.trim();
+		int arroba = t.indexOf('@');
+		if (arroba <= 0) {
+			return "***";
+		}
+		String local = t.substring(0, arroba);
+		String dominio = t.substring(arroba);
+		if (local.length() == 1) {
+			return local.charAt(0) + "***" + dominio;
+		}
+		return local.charAt(0) + "***" + local.charAt(local.length() - 1) + dominio;
 	}
 
 	private static void validarEmailFormatoSiPresente(String email) {

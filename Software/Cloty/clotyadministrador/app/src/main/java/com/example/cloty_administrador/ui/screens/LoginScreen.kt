@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,12 +37,13 @@ import com.example.cloty_administrador.ui.ClotyViewModel
 import com.example.cloty_administrador.ui.components.MessageBanner
 
 @Composable
-fun LoginScreen(viewModel: ClotyViewModel) {
+fun LoginScreen(viewModel: ClotyViewModel, onRecuperarContrasena: () -> Unit = {}) {
     var identificador by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val message by viewModel.message.collectAsState()
 
     Column(
         modifier = Modifier
@@ -102,6 +104,7 @@ fun LoginScreen(viewModel: ClotyViewModel) {
         )
         Spacer(Modifier.height(16.dp))
         MessageBanner(error, isError = true)
+        MessageBanner(message, isError = false, modifier = Modifier.padding(top = 8.dp))
         Spacer(Modifier.height(8.dp))
         Button(
             onClick = { viewModel.login(identificador.trim(), password) },
@@ -109,6 +112,10 @@ fun LoginScreen(viewModel: ClotyViewModel) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(if (loading) "Ingresando…" else "Ingresar")
+        }
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onRecuperarContrasena) {
+            Text("¿Olvidó su contraseña?")
         }
     }
 }

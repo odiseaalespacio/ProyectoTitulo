@@ -8,6 +8,8 @@ import com.example.cloty_administrador.data.ClotyRepository
 import com.example.cloty_administrador.data.TokenStore
 import com.example.cloty_administrador.data.api.Administrador
 import com.example.cloty_administrador.data.api.AdministradorCompletoRequest
+import com.example.cloty_administrador.data.api.AdministradorRequest
+import com.example.cloty_administrador.data.api.UsuarioUpdateRequest
 import com.example.cloty_administrador.data.api.Alumno
 import com.example.cloty_administrador.data.api.AlumnoRequest
 import com.example.cloty_administrador.data.api.Apoderado
@@ -19,6 +21,7 @@ import com.example.cloty_administrador.data.api.Curso
 import com.example.cloty_administrador.data.api.CursoRequest
 import com.example.cloty_administrador.data.api.Usuario
 import com.example.cloty_administrador.data.api.UsuarioCreateRequest
+import com.example.cloty_administrador.util.ApiErrorParser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,6 +53,9 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
+
+    private val _usuariosPorId = MutableStateFlow<Map<Int, Usuario>>(emptyMap())
+    val usuariosPorId = _usuariosPorId.asStateFlow()
 
     private val _superUsuarios = MutableStateFlow<List<Usuario>>(emptyList())
     val superUsuarios = _superUsuarios.asStateFlow()
@@ -94,6 +100,27 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _message.value = null
     }
 
+    private val _correoRecuperacion = MutableStateFlow<String?>(null)
+    val correoRecuperacion: StateFlow<String?> = _correoRecuperacion.asStateFlow()
+
+    fun limpiarRecuperacion() {
+        _correoRecuperacion.value = null
+        _error.value = null
+    }
+
+    fun solicitarRecuperacionContrasena(rut: String, onExito: () -> Unit) = launchTask {
+        val resp = repo.solicitarRecuperacionContrasena(rut)
+        _correoRecuperacion.value = resp.correoEnmascarado
+        _message.value = resp.mensaje ?: "Código enviado al correo registrado"
+        onExito()
+    }
+
+    fun restablecerContrasena(rut: String, codigo: String, password: String, onExito: () -> Unit) = launchTask {
+        repo.restablecerContrasena(rut, codigo, password)
+        _message.value = "Contraseña actualizada. Ya puede iniciar sesión."
+        onExito()
+    }
+
     fun login(identificador: String, password: String) = launchTask {
         val rol = repo.login(identificador, password)
         _rolActual.value = rol
@@ -116,24 +143,80 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun cargarSuperUsuarios() = launchTask {
-        _superUsuarios.value = repo.listarSuperUsuarios()
+        val usuarios = repo.listarUsuarios()
+        _usuariosPorId.value = usuarios.associateBy { it.idUsuario }
+        _superUsuarios.value = usuarios.filter { it.rol == "SUPER_USUARIO" }
     }
 
-    fun crearSuperUsuario(username: String, rut: String, password: String) = launchTask {
+    fun crearSuperUsuario(username: String, rut: String, email: String, password: String) = launchTask {
         repo.crearSuperUsuario(
-            UsuarioCreateRequest(username, rut, password, "SUPER_USUARIO", true)
+            UsuarioCreateRequest(username, rut, password, "SUPER_USUARIO", true, email)
         )
         _message.value = "Super usuario creado"
         cargarSuperUsuarios()
     }
 
+    fun actualizarSuperUsuario(
+        id: Int,
+        username: String,
+        rut: String,
+        password: String?,
+        activo: Boolean
+    ) = launchTask {
+        repo.actualizarUsuario(
+            id,
+            UsuarioUpdateRequest(
+                username = username,
+                rut = rut,
+                password = password?.takeIf { it.isNotBlank() },
+                rol = "SUPER_USUARIO",
+                estado = activo
+            )
+        )
+        _message.value = "Super usuario actualizado"
+        cargarSuperUsuarios()
+    }
+
+    fun eliminarSuperUsuario(id: Int) = launchTask {
+        repo.eliminarUsuario(id)
+        _message.value = "Super usuario eliminado"
+        cargarSuperUsuarios()
+    }
+
     fun cargarAdministradores() = launchTask {
+        val usuarios = repo.listarUsuarios()
+        _usuariosPorId.value = usuarios.associateBy { it.idUsuario }
         _administradores.value = repo.listarAdministradores()
     }
 
     fun crearAdministrador(req: AdministradorCompletoRequest) = launchTask {
         repo.crearAdministrador(req)
         _message.value = "Administrador registrado"
+        cargarAdministradores()
+    }
+
+    fun actualizarAdministrador(
+        idAdministrador: Int,
+        req: AdministradorRequest,
+        username: String?,
+        password: String?
+    ) = launchTask {
+        repo.actualizarAdministrador(idAdministrador, req)
+        repo.actualizarUsuario(
+            req.idUsuario,
+            UsuarioUpdateRequest(
+                username = username?.trim()?.takeIf { it.isNotBlank() },
+                rut = req.rut,
+                password = password?.takeIf { it.isNotBlank() }
+            )
+        )
+        _message.value = "Administrador actualizado"
+        cargarAdministradores()
+    }
+
+    fun eliminarAdministrador(id: Int) = launchTask {
+        repo.eliminarAdministrador(id)
+        _message.value = "Administrador eliminado"
         cargarAdministradores()
     }
 
@@ -154,9 +237,16 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         cargarColegios()
     }
 
+    fun limpiarDatosColegio() {
+        _cursos.value = emptyList()
+        _apoderadosColegio.value = emptyList()
+        _alumnosColegio.value = emptyList()
+    }
+
     // esta parte es nueva
     fun eliminarColegio(id: Int) = launchTask {
         repo.eliminarColegio(id)
+        limpiarDatosColegio()
         _message.value = "Colegio eliminado"
         cargarColegios()
     }
@@ -223,6 +313,18 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         cargarCursos(req.idColegio)
     }
 
+    fun actualizarCurso(id: Int, req: CursoRequest) = launchTask {
+        repo.actualizarCurso(id, req)
+        _message.value = "Curso actualizado"
+        cargarCursos(req.idColegio)
+    }
+
+    fun eliminarCurso(id: Int, idColegio: Int) = launchTask {
+        repo.eliminarCurso(id)
+        _message.value = "Curso eliminado"
+        cargarCursos(idColegio)
+    }
+
     fun importarApoderados(idColegio: Int, uri: Uri) = launchTask {
         _ultimaCarga.value = repo.importarApoderados(idColegio, uri, getApplication())
         _message.value = resumenCarga(_ultimaCarga.value)
@@ -278,7 +380,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 block()
             } catch (e: Exception) {
-                _error.value = e.message ?: "Error desconocido"
+                _error.value = ApiErrorParser.mensaje(e)
             } finally {
                 _loading.value = false
             }

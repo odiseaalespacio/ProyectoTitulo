@@ -24,6 +24,8 @@ public class AdministradorService {
 	private final AdministradorRepository administradorRepository;
 	private final UsuarioRepository usuarioRepository;
 	private final UsuarioService usuarioService;
+	private final EmailService emailService;
+	private final CascadeEliminacionService cascadeEliminacionService;
 
 	@Transactional(readOnly = true)
 	public List<Administrador> listar() {
@@ -43,7 +45,8 @@ public class AdministradorService {
 				req.rut(),
 				req.password(),
 				RolUsuario.ADMINISTRADOR,
-				true
+				true,
+				null
 		));
 		return crear(new AdministradorRequest(
 				usuario.getIdUsuario(),
@@ -52,11 +55,11 @@ public class AdministradorService {
 				req.apellidos(),
 				req.email(),
 				req.telefono()
-		));
+		), usuario.getUsername(), req.password());
 	}
 
 	@Transactional
-	public Administrador crear(AdministradorRequest req) {
+	public Administrador crear(AdministradorRequest req, String username, String passwordPlano) {
 		asegurarUsuario(req.idUsuario());
 		administradorRepository.findByIdUsuario(req.idUsuario()).ifPresent(a -> {
 			throw new ConflictException("El usuario ya está asociado a un administrador");
@@ -72,7 +75,21 @@ public class AdministradorService {
 				.email(req.email())
 				.telefono(req.telefono())
 				.build();
-		return administradorRepository.save(a);
+		Administrador guardado = administradorRepository.save(a);
+		if (username != null && !username.isBlank()) {
+			emailService.enviarBienvenidaAdministrador(guardado, username, passwordPlano);
+		}
+		return guardado;
+	}
+
+	@Transactional
+	public Administrador crear(AdministradorRequest req, String username) {
+		return crear(req, username, null);
+	}
+
+	@Transactional
+	public Administrador crear(AdministradorRequest req) {
+		return crear(req, null);
 	}
 
 	@Transactional
@@ -102,10 +119,10 @@ public class AdministradorService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!administradorRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Administrador no encontrado: " + id);
-		}
+		Administrador administrador = obtener(id);
+		Integer idUsuario = administrador.getIdUsuario();
 		administradorRepository.deleteById(id);
+		cascadeEliminacionService.eliminarAdministradorCompleto(id, idUsuario);
 	}
 
 	private void asegurarUsuario(Integer idUsuario) {

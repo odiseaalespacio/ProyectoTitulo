@@ -11,4 +11,6 @@ public interface CursoRepository extends JpaRepository<Curso, Integer> {
 	List<Curso> findByIdColegioOrderByNombreAsc(Integer idColegio);
 
 	Optional<Curso> findByIdColegioAndNombre(Integer idColegio, String nombre);
+
+	Optional<Curso> findByIdColegioAndNivel(Integer idColegio, String nivel);
 }

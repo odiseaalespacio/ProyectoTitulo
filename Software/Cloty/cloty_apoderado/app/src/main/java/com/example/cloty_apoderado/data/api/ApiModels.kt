@@ -39,9 +39,27 @@ data class Apoderado(
     val direccion: String?
 )
 
-// esta parte es nueva
+data class SolicitarCodigoActivacionRequest(val rut: String)
+
+data class RestablecerContrasenaRequest(
+    val rut: String,
+    val codigo: String,
+    val password: String
+)
+
+data class SolicitarCodigoActivacionResponse(
+    val correoEnmascarado: String?,
+    val mensaje: String?
+)
+
+data class ValidarCodigoActivacionRequest(
+    val rut: String,
+    val codigo: String
+)
+
 data class ActivarCuentaApoderadoRequest(
     val rut: String,
+    val codigo: String,
     val password: String
 )
 

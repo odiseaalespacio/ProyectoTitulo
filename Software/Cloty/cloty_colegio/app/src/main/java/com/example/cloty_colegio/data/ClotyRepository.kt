@@ -1,6 +1,7 @@
 package com.example.cloty_colegio.data
 
 import com.example.cloty_colegio.data.api.ActivarCuentaColegioRequest
+import com.example.cloty_colegio.data.api.SolicitarCodigoActivacionRequest
 import com.example.cloty_colegio.data.api.AlumnoRequest
 import com.example.cloty_colegio.data.api.ApiClient
 import com.example.cloty_colegio.data.api.ApoderadoRequest
@@ -28,9 +29,25 @@ class ClotyRepository(context: android.content.Context) {
         tokenStore.saveToken(response.token)
     }
 
-    suspend fun activarCuenta(rut: String, email: String, telefono: String, password: String) {
+    suspend fun solicitarCodigoActivacion(rut: String) =
+        api.solicitarCodigoActivacion(SolicitarCodigoActivacionRequest(rut))
+
+    suspend fun solicitarRecuperacionContrasena(rut: String) =
+        api.solicitarRecuperacionContrasena(SolicitarCodigoActivacionRequest(rut))
+
+    suspend fun restablecerContrasena(rut: String, codigo: String, password: String) =
+        api.restablecerContrasena(
+            com.example.cloty_colegio.data.api.RestablecerContrasenaRequest(rut, codigo, password)
+        )
+
+    suspend fun validarCodigoActivacion(rut: String, codigo: String) =
+        api.validarCodigoActivacion(
+            com.example.cloty_colegio.data.api.ValidarCodigoActivacionRequest(rut, codigo)
+        )
+
+    suspend fun activarCuenta(rut: String, codigo: String, password: String) {
         val response = api.activarCuentaColegio(
-            ActivarCuentaColegioRequest(rut, email, telefono, password)
+            ActivarCuentaColegioRequest(rut, codigo, password)
         )
         tokenStore.saveToken(response.token)
     }

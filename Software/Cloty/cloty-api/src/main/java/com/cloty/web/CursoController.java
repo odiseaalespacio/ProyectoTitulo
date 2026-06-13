@@ -27,20 +27,20 @@ public class CursoController {
 	private final CursoService cursoService;
 
 	@GetMapping("/colegio/{idColegio}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.ownsColegio(#idColegio))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.ownsColegio(#idColegio))")
 	public List<Curso> listarPorColegio(@PathVariable Integer idColegio) {
 		return cursoService.listarPorColegio(idColegio);
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.ownsCurso(#id))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.ownsCurso(#id))")
 	public Curso obtener(@PathVariable Integer id) {
 		return cursoService.obtener(id);
 	}
 
 	// esta parte es nueva
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoRequest(#body))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoRequest(#body))")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Curso crear(@Valid @RequestBody CursoRequest body) {
 		return cursoService.crear(body);
@@ -48,14 +48,14 @@ public class CursoController {
 
 	// esta parte es nueva
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoId(#id) and @authz.colegioPuedeGestionarCursoRequest(#body))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoId(#id) and @authz.colegioPuedeGestionarCursoRequest(#body))")
 	public Curso actualizar(@PathVariable Integer id, @Valid @RequestBody CursoRequest body) {
 		return cursoService.actualizar(id, body);
 	}
 
 	// esta parte es nueva
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoId(#id))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoId(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		cursoService.eliminar(id);

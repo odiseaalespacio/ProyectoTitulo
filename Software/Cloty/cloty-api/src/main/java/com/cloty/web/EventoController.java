@@ -27,32 +27,32 @@ public class EventoController {
 	private final EventoService eventoService;
 
 	@GetMapping("/tarjeta/{idTarjeta}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsTarjeta(#idTarjeta)")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.ownsTarjeta(#idTarjeta)")
 	public List<Evento> listarPorTarjeta(@PathVariable Integer idTarjeta) {
 		return eventoService.listarPorTarjeta(idTarjeta);
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsEvento(#id)")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.ownsEvento(#id)")
 	public Evento obtener(@PathVariable Integer id) {
 		return eventoService.obtener(id);
 	}
 
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarEventoRequest(#body))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarEventoRequest(#body))")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Evento crear(@Valid @RequestBody EventoRequest body) {
 		return eventoService.crear(body);
 	}
 
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarEventoId(#id) and @authz.colegioPuedeGestionarEventoRequest(#body))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarEventoId(#id) and @authz.colegioPuedeGestionarEventoRequest(#body))")
 	public Evento actualizar(@PathVariable Integer id, @Valid @RequestBody EventoRequest body) {
 		return eventoService.actualizar(id, body);
 	}
 
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarEventoId(#id))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarEventoId(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		eventoService.eliminar(id);

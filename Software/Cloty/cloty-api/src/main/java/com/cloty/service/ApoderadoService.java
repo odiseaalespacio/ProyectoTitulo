@@ -26,6 +26,7 @@ public class ApoderadoService {
 	private final ColegioApoderadoRepository colegioApoderadoRepository;
 	private final ColegioRepository colegioRepository;
 	private final UsuarioRepository usuarioRepository;
+	private final CascadeEliminacionService cascadeEliminacionService;
 
 	@Transactional(readOnly = true)
 	public List<Apoderado> listar() {
@@ -110,10 +111,7 @@ public class ApoderadoService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!apoderadoRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Apoderado no encontrado: " + id);
-		}
-		apoderadoRepository.deleteById(id);
+		cascadeEliminacionService.eliminarApoderadoCompleto(id);
 	}
 
 	private void asegurarUsuario(Integer idUsuario) {

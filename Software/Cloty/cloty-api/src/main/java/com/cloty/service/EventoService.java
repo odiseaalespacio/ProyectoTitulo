@@ -18,6 +18,7 @@ public class EventoService {
 
 	private final EventoRepository eventoRepository;
 	private final TarjetaRepository tarjetaRepository;
+	private final CascadeEliminacionService cascadeEliminacionService;
 	private final UsuarioRepository usuarioRepository;
 
 	@Transactional(readOnly = true)
@@ -71,9 +72,6 @@ public class EventoService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!eventoRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Evento no encontrado: " + id);
-		}
-		eventoRepository.deleteById(id);
+		cascadeEliminacionService.eliminarEventoCompleto(id);
 	}
 }

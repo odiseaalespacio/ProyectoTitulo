@@ -21,8 +21,28 @@ class ClotyRepository(context: android.content.Context) {
         tokenStore.saveToken(api.login(LoginRequest(identificador, password)).token)
     }
 
-    suspend fun activarCuenta(rut: String, password: String) {
-        val req = com.example.cloty_apoderado.data.api.ActivarCuentaApoderadoRequest(rut, password)
+    suspend fun solicitarCodigoActivacion(rut: String) =
+        api.solicitarCodigoActivacion(
+            com.example.cloty_apoderado.data.api.SolicitarCodigoActivacionRequest(rut)
+        )
+
+    suspend fun solicitarRecuperacionContrasena(rut: String) =
+        api.solicitarRecuperacionContrasena(
+            com.example.cloty_apoderado.data.api.SolicitarCodigoActivacionRequest(rut)
+        )
+
+    suspend fun restablecerContrasena(rut: String, codigo: String, password: String) =
+        api.restablecerContrasena(
+            com.example.cloty_apoderado.data.api.RestablecerContrasenaRequest(rut, codigo, password)
+        )
+
+    suspend fun validarCodigoActivacion(rut: String, codigo: String) =
+        api.validarCodigoActivacion(
+            com.example.cloty_apoderado.data.api.ValidarCodigoActivacionRequest(rut, codigo)
+        )
+
+    suspend fun activarCuenta(rut: String, codigo: String, password: String) {
+        val req = com.example.cloty_apoderado.data.api.ActivarCuentaApoderadoRequest(rut, codigo, password)
         tokenStore.saveToken(api.activarCuentaApoderado(req).token)
     }
 

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.example.cloty_colegio.util.ApiErrorParser
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -83,15 +84,54 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         cargarDashboard()
     }
 
-    fun activarCuenta(rut: String, email: String, telefono: String, password: String) = launchTask {
-        repo.activarCuenta(rut, email, telefono, password)
+    private val _correoActivacion = MutableStateFlow<String?>(null)
+    val correoActivacion: StateFlow<String?> = _correoActivacion.asStateFlow()
+
+    fun limpiarActivacion() {
+        _correoActivacion.value = null
+        _error.value = null
+        _message.value = null
+    }
+
+    fun limpiarRecuperacion() {
+        _correoActivacion.value = null
+        _error.value = null
+        _message.value = null
+    }
+
+    fun solicitarRecuperacionContrasena(rut: String, onExito: () -> Unit) = launchTask {
+        val resp = repo.solicitarRecuperacionContrasena(rut)
+        _correoActivacion.value = resp.correoEnmascarado
+        onExito()
+    }
+
+    fun restablecerContrasena(rut: String, codigo: String, password: String, onExito: () -> Unit) = launchTask {
+        repo.restablecerContrasena(rut, codigo, password)
+        _message.value = "Contraseña actualizada. Ya puede iniciar sesión."
+        onExito()
+    }
+
+    fun solicitarCodigoActivacion(rut: String, onExito: () -> Unit) = launchTask {
+        val resp = repo.solicitarCodigoActivacion(rut)
+        _correoActivacion.value = resp.correoEnmascarado
+        onExito()
+    }
+
+    fun validarCodigoActivacion(rut: String, codigo: String, onExito: () -> Unit) = launchTask {
+        repo.validarCodigoActivacion(rut, codigo)
+        onExito()
+    }
+
+    fun activarCuenta(rut: String, codigo: String, password: String) = launchTask {
+        repo.activarCuenta(rut, codigo, password)
         cargarPerfil()
         cargarDashboard()
-        _message.value = "Cuenta activada exitosamente"
     }
 
     fun logout() = launchTask {
         repo.logout()
+        _message.value = null
+        _error.value = null
         _dashboard.value = null
         _nombreColegio.value = null
         _idColegio.value = null
@@ -214,7 +254,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
                 _ultimaOperacion.value = resultado
                 _message.value = resultado.mensaje
             } catch (e: Exception) {
-                _error.value = parseError(e)
+                _error.value = ApiErrorParser.mensaje(e)
             } finally {
                 _loading.value = false
                 scanMutex.unlock()
@@ -233,6 +273,11 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun clearMessage() {
+        _message.value = null
+    }
+
+    fun clearMessages() {
+        _error.value = null
         _message.value = null
     }
 
@@ -258,27 +303,10 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 block()
             } catch (e: Exception) {
-                _error.value = parseError(e)
+                _error.value = ApiErrorParser.mensaje(e)
             } finally {
                 _loading.value = false
             }
         }
-    }
-
-    // esta parte es nueva
-    private fun parseError(e: Exception): String {
-        val raw = e.message ?: "Error desconocido"
-        return when {
-            raw.contains("401") || raw.contains("403") -> "Sesión expirada o sin permisos"
-            raw.contains("404") -> "Recurso no encontrado"
-            raw.contains("409") -> extractApiMessage(raw) ?: "Conflicto: el registro ya existe o tiene datos vinculados"
-            raw.contains("400") -> extractApiMessage(raw) ?: "Solicitud inválida"
-            else -> extractApiMessage(raw) ?: raw
-        }
-    }
-
-    private fun extractApiMessage(raw: String): String? {
-        val msg = Regex("\"message\"\\s*:\\s*\"([^\"]+)\"").find(raw)?.groupValues?.getOrNull(1)
-        return msg?.replace("\\u0027", "'")
     }
 }

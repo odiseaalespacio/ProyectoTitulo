@@ -2,6 +2,19 @@ package com.example.cloty_administrador.data.api
 
 data class LoginRequest(val identificador: String, val password: String)
 
+data class SolicitarCodigoActivacionRequest(val rut: String)
+
+data class SolicitarCodigoActivacionResponse(
+    val correoEnmascarado: String?,
+    val mensaje: String?
+)
+
+data class RestablecerContrasenaRequest(
+    val rut: String,
+    val codigo: String,
+    val password: String
+)
+
 data class CambiarContrasenaRequest(
     val contrasenaActual: String,
     val contrasenaNueva: String
@@ -35,7 +48,7 @@ data class ColegioRequest(
     val idUsuario: Int? = null,
     val rut: String,
     val nombre: String,
-    val email: String? = null,
+    val email: String,
     val telefono: String? = null,
     val direccion: String? = null
 )
@@ -163,7 +176,25 @@ data class UsuarioCreateRequest(
     val rut: String,
     val password: String,
     val rol: String,
-    val estado: Boolean? = true
+    val estado: Boolean? = true,
+    val email: String? = null
+)
+
+data class UsuarioUpdateRequest(
+    val username: String? = null,
+    val rut: String? = null,
+    val password: String? = null,
+    val rol: String? = null,
+    val estado: Boolean? = null
+)
+
+data class AdministradorRequest(
+    val idUsuario: Int,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String,
+    val telefono: String? = null
 )
 
 data class Usuario(

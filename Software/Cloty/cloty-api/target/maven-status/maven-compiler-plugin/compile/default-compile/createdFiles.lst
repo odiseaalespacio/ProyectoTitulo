@@ -1,14 +1,19 @@
+com\cloty\domain\CodigoActivacion.class
 com\cloty\dto\AuthTokenResponse.class
 com\cloty\dto\OperacionPrendaResponse.class
 com\cloty\dto\ScanPrendaRequest.class
+com\cloty\service\ActivacionCodigoService.class
 com\cloty\validation\RutChileno.class
 com\cloty\domain\Notificacion.class
 com\cloty\security\RestAuthenticationEntryPoint.class
 com\cloty\domain\Administrador.class
+com\cloty\dto\SolicitarCodigoActivacionRequest.class
+com\cloty\repo\CodigoActivacionRepository.class
 com\cloty\service\ColegioOperacionService$1.class
 com\cloty\security\ClotyRoles.class
 com\cloty\service\ColegioOperacionService.class
 com\cloty\dto\ActividadRecienteResponse.class
+com\cloty\config\DatabaseBootstrap.class
 com\cloty\web\error\ResourceNotFoundException.class
 com\cloty\web\EventoController.class
 com\cloty\repo\TarjetaRepository.class
@@ -32,9 +37,12 @@ com\cloty\dto\ColegioApoderadoRequest.class
 com\cloty\web\ColegioController.class
 com\cloty\domain\EstadoTarjeta.class
 com\cloty\validation\RutChilenoValidator.class
+com\cloty\dto\RestablecerContrasenaRequest.class
+com\cloty\domain\CodigoActivacion$CodigoActivacionBuilder.class
 com\cloty\web\ColegioOperacionController.class
 com\cloty\web\error\ConflictException.class
 com\cloty\config\PasswordEncoderConfig.class
+com\cloty\service\CascadeEliminacionService.class
 com\cloty\dto\ActivarCuentaColegioRequest.class
 com\cloty\repo\AlumnoRepository.class
 com\cloty\domain\ColegioApoderado$ColegioApoderadoBuilder.class
@@ -67,6 +75,7 @@ com\cloty\domain\RolUsuario.class
 com\cloty\config\TestSecurityConfig.class
 com\cloty\repo\ColegioApoderadoRepository.class
 com\cloty\dto\CursoRequest.class
+com\cloty\dto\SolicitarCodigoActivacionResponse.class
 com\cloty\security\ClotyUserDetailsService.class
 com\cloty\web\NotificacionController.class
 com\cloty\web\UsuarioController.class
@@ -80,6 +89,7 @@ com\cloty\domain\Usuario$UsuarioBuilder.class
 com\cloty\repo\UsuarioRepository.class
 com\cloty\validation\TelefonoChileno.class
 com\cloty\dto\TarjetaRequest.class
+com\cloty\validation\ChileValidacion$RutPartes.class
 com\cloty\domain\Colegio.class
 com\cloty\dto\UsuarioCreateRequest.class
 com\cloty\security\JwtAuthenticationFilter.class
@@ -96,6 +106,7 @@ com\cloty\service\CargaMasivaService.class
 com\cloty\web\ApoderadoController.class
 com\cloty\validation\TelefonoChilenoValidator.class
 com\cloty\web\CursoController.class
+com\cloty\service\AuthService$1.class
 com\cloty\domain\Apoderado$ApoderadoBuilder.class
 com\cloty\domain\Notificacion$NotificacionBuilder.class
 com\cloty\dto\ColegioDashboardResponse.class
@@ -109,5 +120,7 @@ com\cloty\dto\CambiarContrasenaRequest.class
 com\cloty\dto\CargaMasivaResult.class
 com\cloty\service\EventoService.class
 com\cloty\security\RestAccessDeniedHandler.class
+com\cloty\domain\TipoEntidadActivacion.class
 com\cloty\repo\ColegioRepository.class
 com\cloty\domain\Curso$CursoBuilder.class
+com\cloty\dto\ValidarCodigoActivacionRequest.class

@@ -10,6 +10,7 @@ import com.cloty.web.error.BadRequestException;
 import com.cloty.web.error.ConflictException;
 import com.cloty.web.error.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,14 @@ public class UsuarioService {
 	private final UsuarioRepository usuarioRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final SecurityCurrentUser securityCurrentUser;
+	private final EmailService emailService;
+	private final CascadeEliminacionService cascadeEliminacionService;
+
+	@Value("${cloty.bootstrap.super-username:superadmin}")
+	private String bootstrapSuperUsername;
+
+	@Value("${cloty.bootstrap.super-rut:00000000-0}")
+	private String bootstrapSuperRut;
 
 	@Transactional(readOnly = true)
 	public List<Usuario> listar() {
@@ -40,6 +49,9 @@ public class UsuarioService {
 	@Transactional
 	public Usuario crear(UsuarioCreateRequest req) {
 		validarAsignacionRolPrivilegiado(req.rol(), null);
+		if (req.rol() == RolUsuario.SUPER_USUARIO && (req.email() == null || req.email().isBlank())) {
+			throw new BadRequestException("El correo es obligatorio para super usuarios");
+		}
 		if (usuarioRepository.existsByUsername(req.username().trim())) {
 			throw new ConflictException("El nombre de usuario ya existe");
 		}
@@ -54,7 +66,12 @@ public class UsuarioService {
 				.rol(req.rol())
 				.estado(req.estado() != null ? req.estado() : Boolean.TRUE)
 				.build();
-		return usuarioRepository.save(u);
+		u = usuarioRepository.save(u);
+		if (req.rol() == RolUsuario.SUPER_USUARIO && req.email() != null && !req.email().isBlank()) {
+			emailService.enviarBienvenidaSuperUsuario(
+					req.email().trim(), u.getUsername(), u.getRut(), req.password());
+		}
+		return u;
 	}
 
 	@Transactional
@@ -93,10 +110,18 @@ public class UsuarioService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!usuarioRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Usuario no encontrado: " + id);
+		Usuario u = obtener(id);
+		validarNoEliminarSuperRoot(u);
+		cascadeEliminacionService.eliminarUsuarioCompleto(id);
+	}
+
+	private void validarNoEliminarSuperRoot(Usuario u) {
+		if (u.getRol() != RolUsuario.SUPER_USUARIO) {
+			return;
 		}
-		usuarioRepository.deleteById(id);
+		if (bootstrapSuperUsername.equals(u.getUsername()) && bootstrapSuperRut.equals(u.getRut())) {
+			throw new BadRequestException("No se puede eliminar el super usuario principal del sistema");
+		}
 	}
 
 	private void validarAsignacionRolPrivilegiado(RolUsuario nuevoRol, RolUsuario rolActual) {

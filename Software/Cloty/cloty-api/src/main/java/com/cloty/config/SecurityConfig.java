@@ -40,6 +40,12 @@ public class SecurityConfig {
 						.requestMatchers(
 								"/api/auth/login",
 								"/api/auth/registro-apoderado",
+								"/api/auth/solicitar-codigo-apoderado",
+								"/api/auth/solicitar-codigo-colegio",
+								"/api/auth/validar-codigo-apoderado",
+								"/api/auth/validar-codigo-colegio",
+								"/api/auth/solicitar-recuperacion-contrasena",
+								"/api/auth/restablecer-contrasena",
 								"/api/auth/activar-cuenta-apoderado",
 								"/api/auth/activar-cuenta-colegio"
 						).permitAll()

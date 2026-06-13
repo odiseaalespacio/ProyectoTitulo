@@ -31,6 +31,10 @@ fun MainScreen(viewModel: ClotyViewModel, onLogout: () -> Unit) {
 
     LaunchedEffect(Unit) { viewModel.cargarDatos() }
 
+    LaunchedEffect(tab) {
+        viewModel.clearMessages()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(nombre ?: "Cloty Apoderado") })

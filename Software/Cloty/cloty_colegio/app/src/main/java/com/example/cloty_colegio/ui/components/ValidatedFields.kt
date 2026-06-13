@@ -1,4 +1,4 @@
-﻿package com.example.cloty_colegio.ui.components
+package com.example.cloty_colegio.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import com.example.cloty_colegio.ui.theme.clotyFieldColors
 import com.example.cloty_colegio.util.ChileValidators
 
 // esto es nuevo
@@ -28,12 +29,14 @@ fun RutTextField(
 ) {
     val errorMsg = ChileValidators.mensajeErrorRut(value, obligatorio, showValidation)
     val error = errorMsg != null
+    val fieldColors = clotyFieldColors()
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         modifier = modifier,
         singleLine = true,
+        colors = fieldColors,
         isError = error,
         supportingText = {
             Text(
@@ -58,12 +61,14 @@ fun EmailTextField(
 ) {
     val errorMsg = ChileValidators.mensajeErrorEmail(value, obligatorio, showValidation)
     val error = errorMsg != null
+    val fieldColors = clotyFieldColors()
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         modifier = modifier,
         singleLine = true,
+        colors = fieldColors,
         isError = error,
         supportingText = if (error) {
             {
@@ -90,12 +95,14 @@ fun TelefonoChilenoTextField(
 ) {
     val errorMsg = ChileValidators.mensajeErrorTelefono(value, obligatorio, showValidation)
     val error = errorMsg != null
+    val fieldColors = clotyFieldColors()
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
         modifier = modifier,
         singleLine = true,
+        colors = fieldColors,
         isError = error,
         supportingText = {
             Text(

@@ -19,6 +19,7 @@ public class TarjetaService {
 
 	private final TarjetaRepository tarjetaRepository;
 	private final AlumnoRepository alumnoRepository;
+	private final CascadeEliminacionService cascadeEliminacionService;
 
 	@Transactional(readOnly = true)
 	public List<Tarjeta> listarPorAlumno(Integer idAlumno) {
@@ -83,9 +84,6 @@ public class TarjetaService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!tarjetaRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Tarjeta no encontrada: " + id);
-		}
-		tarjetaRepository.deleteById(id);
+		cascadeEliminacionService.eliminarTarjetaCompleta(id);
 	}
 }

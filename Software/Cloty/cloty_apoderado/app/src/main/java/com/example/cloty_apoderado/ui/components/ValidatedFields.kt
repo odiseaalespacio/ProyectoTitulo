@@ -1,4 +1,4 @@
-﻿package com.example.cloty_apoderado.ui.components
+package com.example.cloty_apoderado.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions

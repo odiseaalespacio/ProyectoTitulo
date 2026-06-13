@@ -58,7 +58,7 @@ fun EditarColegioScreen(
 
     fun errorValidacion() = ChileValidators.primerMensajeError(
         if (nombre.isBlank()) "Debe ingresar el nombre del colegio" else null,
-        ChileValidators.mensajeErrorEmail(email),
+        ChileValidators.mensajeErrorEmail(email, obligatorio = true),
         ChileValidators.mensajeErrorTelefono(telefono)
     )
 
@@ -96,7 +96,7 @@ fun EditarColegioScreen(
             OutlinedTextField(rut, {}, label = { Text("RUT") }, readOnly = true, modifier = Modifier.fillMaxWidth(), singleLine = true)
             // esto es nuevo
             OutlinedTextField(nombre, { nombre = it; showValidation = false }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            EmailTextField(email, { email = it; showValidation = false }, label = "Correo", showValidation = showValidation)
+            EmailTextField(email, { email = it; showValidation = false }, label = "Correo", obligatorio = true, showValidation = showValidation)
             TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
             OutlinedTextField(direccion, { direccion = it }, label = { Text("Dirección") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             // esto es nuevo
@@ -112,7 +112,7 @@ fun EditarColegioScreen(
                         ColegioRequest(
                             rut = ChileValidators.normalizarRutParaApi(rut),
                             nombre = nombre.trim(),
-                            email = email.trim().ifBlank { null },
+                            email = email.trim(),
                             telefono = telefono.trim().ifBlank { null },
                             direccion = direccion.trim().ifBlank { null }
                         )

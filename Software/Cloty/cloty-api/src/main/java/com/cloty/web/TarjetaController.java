@@ -27,38 +27,38 @@ public class TarjetaController {
 	private final TarjetaService tarjetaService;
 
 	@GetMapping("/alumno/{idAlumno}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsAlumno(#idAlumno)")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.ownsAlumno(#idAlumno)")
 	public List<Tarjeta> listarPorAlumno(@PathVariable Integer idAlumno) {
 		return tarjetaService.listarPorAlumno(idAlumno);
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsTarjeta(#id)")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.ownsTarjeta(#id)")
 	public Tarjeta obtener(@PathVariable Integer id) {
 		return tarjetaService.obtener(id);
 	}
 
 	@GetMapping("/uid/{uidNfc}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsTarjetaUid(#uidNfc)")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.ownsTarjetaUid(#uidNfc)")
 	public Tarjeta obtenerPorUid(@PathVariable String uidNfc) {
 		return tarjetaService.obtenerPorUid(uidNfc);
 	}
 
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO')")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Tarjeta crear(@Valid @RequestBody TarjetaRequest body) {
 		return tarjetaService.crear(body);
 	}
 
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO')")
 	public Tarjeta actualizar(@PathVariable Integer id, @Valid @RequestBody TarjetaRequest body) {
 		return tarjetaService.actualizar(id, body);
 	}
 
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO')")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		tarjetaService.eliminar(id);

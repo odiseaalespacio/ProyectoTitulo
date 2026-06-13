@@ -41,6 +41,7 @@ import com.example.cloty_colegio.data.api.Curso
 import com.example.cloty_colegio.data.api.CursoRequest
 import com.example.cloty_colegio.ui.ClotyViewModel
 import com.example.cloty_colegio.ui.components.MessageBanner
+import com.example.cloty_colegio.ui.components.NivelSelector
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,6 +90,9 @@ fun GestionCursosScreen(
         ) {
             MessageBanner(error, true)
             MessageBanner(message, false)
+            if (cursos.isEmpty() && !loading && error == null) {
+                Text("No hay cursos registrados.")
+            }
             LazyColumn {
                 items(cursos) { curso ->
                     ListItem(
@@ -96,8 +100,8 @@ fun GestionCursosScreen(
                         supportingContent = {
                             Text(
                                 buildString {
-                                    curso.nivel?.let { append("Nivel: $it · ") }
-                                    append("ID ${curso.idCurso}")
+                                    append(curso.nivel ?: curso.nombre)
+                                    append(" · ID ${curso.idCurso}")
                                 }
                             )
                         },
@@ -165,15 +169,29 @@ private fun CursoFormDialog(
     onSave: (CursoRequest) -> Unit
 ) {
     var nombre by rememberSaveable(curso?.idCurso) { mutableStateOf(curso?.nombre ?: "") }
-    var nivel by rememberSaveable(curso?.idCurso) { mutableStateOf(curso?.nivel ?: "") }
+    var nivel by rememberSaveable(curso?.idCurso) { mutableStateOf(curso?.nivel ?: curso?.nombre ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (curso == null) "Nuevo curso" else "Editar curso") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(nombre, { nombre = it }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(nivel, { nivel = it }, label = { Text("Nivel (opcional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                NivelSelector(
+                    selected = nivel,
+                    onSelected = { seleccion ->
+                        nivel = seleccion
+                        if (nombre.isBlank() || nombre == nivel) {
+                            nombre = seleccion
+                        }
+                    }
+                )
+                OutlinedTextField(
+                    nombre,
+                    { nombre = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
@@ -183,12 +201,12 @@ private fun CursoFormDialog(
                         CursoRequest(
                             idColegio = idColegio,
                             nombre = nombre.trim(),
-                            nivel = nivel.trim().ifBlank { null },
+                            nivel = nivel.trim(),
                             estado = curso?.estado ?: true
                         )
                     )
                 },
-                enabled = !loading && nombre.isNotBlank()
+                enabled = !loading && nombre.isNotBlank() && nivel.isNotBlank()
             ) { Text("Guardar") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }

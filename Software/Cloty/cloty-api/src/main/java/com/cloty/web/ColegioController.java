@@ -27,19 +27,19 @@ public class ColegioController {
 	private final ColegioService colegioService;
 
 	@GetMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO')")
 	public List<Colegio> listar() {
 		return colegioService.listar();
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.ownsColegio(#id))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.ownsColegio(#id))")
 	public Colegio obtener(@PathVariable Integer id) {
 		return colegioService.obtener(id);
 	}
 
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO')")
 	@ResponseStatus(HttpStatus.CREATED)
 	public Colegio crear(@Valid @RequestBody ColegioRequest body) {
 		return colegioService.crear(body);
@@ -47,13 +47,13 @@ public class ColegioController {
 
 	// esta parte es nueva
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.ownsColegio(#id))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.ownsColegio(#id))")
 	public Colegio actualizar(@PathVariable Integer id, @Valid @RequestBody ColegioRequest body) {
 		return colegioService.actualizar(id, body);
 	}
 
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO')")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		colegioService.eliminar(id);

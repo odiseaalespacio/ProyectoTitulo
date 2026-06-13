@@ -17,7 +17,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/carga-masiva")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMINISTRADOR')")
+@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO')")
 public class CargaMasivaController {
 
 	private final CargaMasivaService cargaMasivaService;

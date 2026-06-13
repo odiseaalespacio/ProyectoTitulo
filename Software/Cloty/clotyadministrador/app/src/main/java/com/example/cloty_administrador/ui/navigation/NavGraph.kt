@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.cloty_administrador.data.TokenStore
 import com.example.cloty_administrador.ui.ClotyViewModel
@@ -18,16 +19,22 @@ import com.example.cloty_administrador.ui.screens.CuentaScreen
 import com.example.cloty_administrador.ui.screens.CursosScreen
 import com.example.cloty_administrador.ui.screens.HomeScreen
 import com.example.cloty_administrador.ui.screens.LoginScreen
+import com.example.cloty_administrador.ui.screens.RecuperarContrasenaScreen
 import com.example.cloty_administrador.ui.screens.SuperUsuariosScreen
 import com.example.cloty_administrador.ui.screens.TarjetasNfcScreen
 
 @Composable
 fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String? = null) {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
     val token by viewModel.tokenFlow.collectAsState(initial = null)
     val rol by viewModel.rolFlow.collectAsState(initial = null)
     val esSuper = rol == TokenStore.ROL_SUPER_USUARIO
     val start = if (token.isNullOrBlank()) Routes.LOGIN else Routes.HOME
+
+    LaunchedEffect(navBackStackEntry?.destination?.route) {
+        viewModel.clearMessages()
+    }
 
     LaunchedEffect(token) {
         if (!token.isNullOrBlank()) {
@@ -39,7 +46,16 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
 
     NavHost(navController = navController, startDestination = start) {
         composable(Routes.LOGIN) {
-            LoginScreen(viewModel)
+            LoginScreen(
+                viewModel = viewModel,
+                onRecuperarContrasena = { navController.navigate(Routes.RECUPERAR_CONTRASENA) }
+            )
+        }
+        composable(Routes.RECUPERAR_CONTRASENA) {
+            RecuperarContrasenaScreen(
+                viewModel = viewModel,
+                onBackToLogin = { navController.popBackStack() }
+            )
         }
         composable(Routes.HOME) {
             HomeScreen(

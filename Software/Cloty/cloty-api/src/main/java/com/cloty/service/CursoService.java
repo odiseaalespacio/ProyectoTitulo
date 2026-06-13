@@ -18,6 +18,7 @@ public class CursoService {
 
 	private final CursoRepository cursoRepository;
 	private final ColegioRepository colegioRepository;
+	private final CascadeEliminacionService cascadeEliminacionService;
 
 	@Transactional(readOnly = true)
 	public List<Curso> listarPorColegio(Integer idColegio) {
@@ -74,9 +75,6 @@ public class CursoService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!cursoRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Curso no encontrado: " + id);
-		}
-		cursoRepository.deleteById(id);
+		cascadeEliminacionService.eliminarCursoCompleto(id);
 	}
 }

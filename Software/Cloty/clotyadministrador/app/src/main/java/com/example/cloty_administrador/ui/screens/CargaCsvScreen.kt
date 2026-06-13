@@ -73,7 +73,8 @@ fun CargaCsvScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             ColegioSelector(colegios, idColegio) { idColegio = it }
             Text(
                 "1) Apoderados: rut, nombres, apellidos, email, telefono, direccion\n" +
-                    "2) Alumnos: rut_alumno, nombres, apellidos, nombre_curso, rut_apoderado, estado",
+                    "2) Alumnos: rut_alumno, nombres, apellidos, nivel, rut_apoderado, estado\n" +
+                    "   (nivel: 1° Básico a 8° Básico, 1° Medio a 4° Medio; crea el curso si no existe)",
                 style = MaterialTheme.typography.bodySmall
             )
             Button(

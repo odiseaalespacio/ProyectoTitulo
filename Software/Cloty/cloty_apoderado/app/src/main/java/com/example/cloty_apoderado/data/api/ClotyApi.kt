@@ -12,6 +12,18 @@ interface ClotyApi {
     @POST("api/auth/login")
     suspend fun login(@Body body: LoginRequest): AuthTokenResponse
 
+    @POST("api/auth/solicitar-codigo-apoderado")
+    suspend fun solicitarCodigoActivacion(@Body body: SolicitarCodigoActivacionRequest): SolicitarCodigoActivacionResponse
+
+    @POST("api/auth/solicitar-recuperacion-contrasena")
+    suspend fun solicitarRecuperacionContrasena(@Body body: SolicitarCodigoActivacionRequest): SolicitarCodigoActivacionResponse
+
+    @POST("api/auth/restablecer-contrasena")
+    suspend fun restablecerContrasena(@Body body: RestablecerContrasenaRequest)
+
+    @POST("api/auth/validar-codigo-apoderado")
+    suspend fun validarCodigoActivacion(@Body body: ValidarCodigoActivacionRequest)
+
     @POST("api/auth/activar-cuenta-apoderado")
     suspend fun activarCuentaApoderado(@Body body: ActivarCuentaApoderadoRequest): AuthTokenResponse
 

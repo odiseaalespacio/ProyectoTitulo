@@ -11,6 +11,8 @@ import com.cloty.repo.ApoderadoRepository;
 import com.cloty.repo.ColegioRepository;
 import com.cloty.repo.CursoRepository;
 import com.cloty.util.CsvParser;
+import com.cloty.validation.ChileValidacion;
+import com.cloty.util.NivelesCurso;
 import com.cloty.web.error.BadRequestException;
 import com.cloty.web.error.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +50,7 @@ public class CargaMasivaService {
 		for (Map<String, String> fila : filas) {
 			String linea = fila.get("_linea");
 			try {
-				String rut = valor(fila, "rut");
+				String rut = ChileValidacion.formatearRutConGuion(valor(fila, "rut"));
 				if (rut.isBlank()) {
 					throw new BadRequestException("RUT vacío");
 				}
@@ -100,17 +102,18 @@ public class CargaMasivaService {
 		for (Map<String, String> fila : filas) {
 			String linea = fila.get("_linea");
 			try {
-				String rutAlumno = valor(fila, "rut_alumno", "rut");
+				String rutAlumno = ChileValidacion.formatearRutConGuion(valor(fila, "rut_alumno", "rut"));
 				String nombres = valor(fila, "nombres");
 				String apellidos = valor(fila, "apellidos");
 				String nombreCurso = valor(fila, "nombre_curso", "curso");
-				String rutApoderado = valor(fila, "rut_apoderado");
+				String nivelCurso = valor(fila, "nivel");
+				String rutApoderado = ChileValidacion.formatearRutConGuion(valor(fila, "rut_apoderado"));
 
 				if (rutAlumno.isBlank() || nombres.isBlank() || apellidos.isBlank()) {
 					throw new BadRequestException("RUT, nombres y apellidos del alumno son obligatorios");
 				}
-				if (nombreCurso.isBlank()) {
-					throw new BadRequestException("nombre_curso es obligatorio");
+				if (nombreCurso.isBlank() && nivelCurso.isBlank()) {
+					throw new BadRequestException("Debe indicar el nivel del curso");
 				}
 				if (rutApoderado.isBlank()) {
 					throw new BadRequestException("rut_apoderado es obligatorio");
@@ -126,8 +129,7 @@ public class CargaMasivaService {
 						.orElseThrow(() -> new BadRequestException(
 								"Apoderado no encontrado: " + rutApoderado + ". Cargue apoderados primero."));
 
-				Curso curso = cursoRepository.findByIdColegioAndNombre(idColegio, nombreCurso)
-						.orElseGet(() -> cursoService.crear(new CursoRequest(idColegio, nombreCurso, null, true)));
+				Curso curso = resolverCurso(idColegio, nivelCurso, nombreCurso);
 
 				boolean estado = parseEstado(valorOpcional(fila, "estado"));
 
@@ -141,7 +143,7 @@ public class CargaMasivaService {
 						estado
 				));
 				creados++;
-				mensajes.add("Línea " + linea + ": alumno " + rutAlumno + " → " + nombreCurso);
+				mensajes.add("Línea " + linea + ": alumno " + rutAlumno + " → " + curso.getNombre());
 			} catch (Exception e) {
 				errores++;
 				mensajes.add("Línea " + linea + ": " + e.getMessage());
@@ -149,6 +151,20 @@ public class CargaMasivaService {
 		}
 
 		return new CargaMasivaResult(filas.size(), creados, omitidos, errores, mensajes);
+	}
+
+	private Curso resolverCurso(Integer idColegio, String nivelRaw, String nombreRaw) {
+		String nivel = NivelesCurso.normalizar(!nivelRaw.isBlank() ? nivelRaw : nombreRaw);
+		if (nivel == null) {
+			throw new BadRequestException(
+					"Nivel inválido. Use 1° Básico a 8° Básico o 1° Medio a 4° Medio.");
+		}
+		return cursoRepository.findByIdColegioAndNivel(idColegio, nivel)
+				.orElseGet(() -> {
+					String nombre = !nombreRaw.isBlank() ? nombreRaw : nivel;
+					return cursoRepository.findByIdColegioAndNombre(idColegio, nombre)
+							.orElseGet(() -> cursoService.crear(new CursoRequest(idColegio, nombre, nivel, true)));
+				});
 	}
 
 	private void asegurarColegio(Integer idColegio) {

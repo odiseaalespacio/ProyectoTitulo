@@ -35,7 +35,7 @@ public class UsuarioController {
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or " + ClotyRoles.SUPER_USUARIO + " or @authz.isSelfUser(#id)")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or " + ClotyRoles.SUPER_USUARIO + " or @authz.isSelfUser(#id)")
 	public Usuario obtener(@PathVariable Integer id) {
 		return usuarioService.obtener(id);
 	}
@@ -48,7 +48,7 @@ public class UsuarioController {
 	}
 
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or " + ClotyRoles.SUPER_USUARIO)
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or " + ClotyRoles.SUPER_USUARIO)
 	public Usuario actualizar(@PathVariable Integer id, @Valid @RequestBody UsuarioUpdateRequest body) {
 		return usuarioService.actualizar(id, body);
 	}

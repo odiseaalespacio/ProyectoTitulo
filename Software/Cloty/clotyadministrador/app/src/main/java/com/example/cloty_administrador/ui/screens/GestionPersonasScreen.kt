@@ -123,6 +123,9 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             if (idColegio <= 0) {
                 Text("Seleccione un colegio para gestionar apoderados y alumnos.")
             } else if (tab == 0) {
+                if (apoderados.isEmpty() && !loading && error == null) {
+                    Text("No hay apoderados registrados en este colegio.")
+                }
                 LazyColumn {
                     items(apoderados) { a ->
                         ListItem(
@@ -145,6 +148,9 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                     }
                 }
             } else {
+                if (alumnos.isEmpty() && !loading && error == null) {
+                    Text("No hay alumnos registrados en este colegio.")
+                }
                 LazyColumn {
                     items(alumnos) { al ->
                         val cursoNombre = cursos.find { it.idCurso == al.idCurso }?.nombre ?: "Curso ${al.idCurso}"
@@ -258,7 +264,7 @@ private fun ApoderadoFormDialog(
 
     fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
         ChileValidators.mensajeErrorRut(rut, mostrarVacios = mostrarVacios),
-        ChileValidators.mensajeErrorEmail(email, mostrarVacios = mostrarVacios),
+        ChileValidators.mensajeErrorEmail(email, obligatorio = true, mostrarVacios = mostrarVacios),
         ChileValidators.mensajeErrorTelefono(telefono, mostrarVacios = mostrarVacios),
         if (nombres.isBlank() && mostrarVacios) "Debe ingresar nombres" else null,
         if (apellidos.isBlank() && mostrarVacios) "Debe ingresar apellidos" else null
@@ -273,7 +279,7 @@ private fun ApoderadoFormDialog(
                 RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                 OutlinedTextField(nombres, { nombres = it; showValidation = false }, label = { Text("Nombres") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(apellidos, { apellidos = it; showValidation = false }, label = { Text("Apellidos") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                EmailTextField(email, { email = it; showValidation = false }, showValidation = showValidation)
+                EmailTextField(email, { email = it; showValidation = false }, obligatorio = true, showValidation = showValidation)
                 TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
                 OutlinedTextField(direccion, { direccion = it }, label = { Text("Dirección") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 // esto es nuevo

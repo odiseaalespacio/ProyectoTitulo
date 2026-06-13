@@ -4,14 +4,16 @@ import com.cloty.domain.Colegio;
 import com.cloty.dto.ColegioRequest;
 import com.cloty.repo.ColegioRepository;
 import com.cloty.repo.UsuarioRepository;
+import com.cloty.validation.ChileValidacion;
 import com.cloty.web.error.ConflictException;
 import com.cloty.web.error.ResourceNotFoundException;
+import com.cloty.web.error.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 @Service
@@ -20,6 +22,8 @@ public class ColegioService {
 
 	private final ColegioRepository colegioRepository;
 	private final UsuarioRepository usuarioRepository;
+	private final EmailService emailService;
+	private final CascadeEliminacionService cascadeEliminacionService;
 
 	@Transactional(readOnly = true)
 	public List<Colegio> listar() {
@@ -34,7 +38,7 @@ public class ColegioService {
 
 	@Transactional
 	public Colegio crear(ColegioRequest req) {
-		String rut = req.rut().trim();
+		String rut = ChileValidacion.formatearRutConGuion(req.rut());
 		if (colegioRepository.existsByRut(rut)) {
 			throw new ConflictException("El RUT del colegio ya está registrado");
 		}
@@ -44,15 +48,21 @@ public class ColegioService {
 				throw new ConflictException("El usuario ya está asociado a un colegio");
 			});
 		}
+		String emailNorm = normalizarEmailRequerido(req.email());
+		asegurarEmailUnico(emailNorm, null);
 		Colegio c = Colegio.builder()
 				.idUsuario(req.idUsuario())
 				.rut(rut)
 				.nombre(req.nombre())
-				.email(StringUtils.hasText(req.email()) ? req.email().trim() : null)
+				.email(emailNorm)
 				.telefono(req.telefono())
 				.direccion(req.direccion())
 				.build();
-		return colegioRepository.save(c);
+		c = colegioRepository.save(c);
+		if (c.getIdUsuario() == null) {
+			emailService.enviarInstructivoActivacionColegio(c);
+		}
+		return c;
 	}
 
 	@Transactional
@@ -69,15 +79,15 @@ public class ColegioService {
 				c.setIdUsuario(req.idUsuario());
 			}
 		}
-		String rut = req.rut().trim();
+		String rut = ChileValidacion.formatearRutConGuion(req.rut());
 		if (!rut.equals(c.getRut()) && colegioRepository.existsByRut(rut)) {
 			throw new ConflictException("El RUT del colegio ya está registrado");
 		}
 		c.setRut(rut);
 		c.setNombre(req.nombre());
-		if (StringUtils.hasText(req.email())) {
-			c.setEmail(req.email().trim());
-		}
+		String emailNorm = normalizarEmailRequerido(req.email());
+		asegurarEmailUnico(emailNorm, id);
+		c.setEmail(emailNorm);
 		c.setTelefono(req.telefono());
 		c.setDireccion(req.direccion());
 		return colegioRepository.save(c);
@@ -85,15 +95,31 @@ public class ColegioService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!colegioRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Colegio no encontrado: " + id);
-		}
-		colegioRepository.deleteById(id);
+		cascadeEliminacionService.eliminarColegioCompleto(id);
 	}
 
 	private void asegurarUsuario(Integer idUsuario) {
 		if (!usuarioRepository.existsById(idUsuario)) {
 			throw new ResourceNotFoundException("Usuario no encontrado: " + idUsuario);
 		}
+	}
+
+	private void asegurarEmailUnico(String email, Integer idColegioExcluir) {
+		colegioRepository.findByEmailIgnoreCase(email)
+				.filter(c -> idColegioExcluir == null || !c.getIdColegio().equals(idColegioExcluir))
+				.ifPresent(c -> {
+					throw new ConflictException("El correo ya está registrado en otro colegio");
+				});
+	}
+
+	private static String normalizarEmailRequerido(String email) {
+		if (email == null || email.isBlank()) {
+			throw new BadRequestException("El correo es obligatorio");
+		}
+		String t = email.trim();
+		if (!t.contains("@") || t.indexOf('@') == 0 || t.endsWith("@")) {
+			throw new BadRequestException("El formato del correo no es válido");
+		}
+		return t.toLowerCase(Locale.ROOT);
 	}
 }

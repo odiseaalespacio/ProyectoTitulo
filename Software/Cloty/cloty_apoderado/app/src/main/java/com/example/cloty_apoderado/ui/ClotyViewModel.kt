@@ -17,6 +17,7 @@ import com.example.cloty_apoderado.notification.NotificationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.example.cloty_apoderado.util.ApiErrorParser
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -55,19 +56,57 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         cargarPerfil()
         cargarDatos()
         startNotificationPolling()
-        _message.value = "Sesión iniciada"
     }
 
-    fun activarCuenta(rut: String, password: String) = launchTask {
-        repo.activarCuenta(rut, password)
+    private val _correoActivacion = MutableStateFlow<String?>(null)
+    val correoActivacion: StateFlow<String?> = _correoActivacion.asStateFlow()
+
+    fun limpiarActivacion() {
+        _correoActivacion.value = null
+        _error.value = null
+        _message.value = null
+    }
+
+    fun limpiarRecuperacion() {
+        _correoActivacion.value = null
+        _error.value = null
+        _message.value = null
+    }
+
+    fun solicitarRecuperacionContrasena(rut: String, onExito: () -> Unit) = launchTask {
+        val resp = repo.solicitarRecuperacionContrasena(rut)
+        _correoActivacion.value = resp.correoEnmascarado
+        onExito()
+    }
+
+    fun restablecerContrasena(rut: String, codigo: String, password: String, onExito: () -> Unit) = launchTask {
+        repo.restablecerContrasena(rut, codigo, password)
+        _message.value = "Contraseña actualizada. Ya puede iniciar sesión."
+        onExito()
+    }
+
+    fun solicitarCodigoActivacion(rut: String, onExito: () -> Unit) = launchTask {
+        val resp = repo.solicitarCodigoActivacion(rut)
+        _correoActivacion.value = resp.correoEnmascarado
+        _message.value = resp.mensaje ?: "Código enviado al correo registrado"
+        onExito()
+    }
+
+    fun validarCodigoActivacion(rut: String, codigo: String, onExito: () -> Unit) = launchTask {
+        repo.validarCodigoActivacion(rut, codigo)
+        onExito()
+    }
+
+    fun activarCuenta(rut: String, codigo: String, password: String) = launchTask {
+        repo.activarCuenta(rut, codigo, password)
         cargarPerfil()
         cargarDatos()
         startNotificationPolling()
-        _message.value = "Cuenta activada exitosamente"
     }
 
     fun logout() = launchTask {
         repo.logout()
+        clearMessages()
         stopNotificationPolling()
         idApoderado = null
         _pupilos.value = emptyList()
@@ -148,18 +187,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _message.value = null
     }
 
-    // esta parte es nueva
-    private fun parseError(e: Exception): String {
-        val raw = e.message ?: "Error desconocido"
-        val msg = Regex("\"message\"\\s*:\\s*\"([^\"]+)\"").find(raw)?.groupValues?.getOrNull(1)
-        return msg ?: when {
-            raw.contains("403") || raw.contains("401") -> "Sesión expirada o sin permisos"
-            raw.contains("409") -> "No se pudo completar la operación (conflicto de datos)"
-            raw.contains("400") -> "Solicitud inválida"
-            else -> raw
-        }
-    }
-
     private fun launchTask(block: suspend () -> Unit) {
         viewModelScope.launch {
             _loading.value = true
@@ -167,7 +194,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 block()
             } catch (e: Exception) {
-                _error.value = parseError(e)
+                _error.value = ApiErrorParser.mensaje(e)
             } finally {
                 _loading.value = false
             }

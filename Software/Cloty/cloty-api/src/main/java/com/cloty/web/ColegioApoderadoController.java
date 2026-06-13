@@ -26,32 +26,32 @@ public class ColegioApoderadoController {
 	private final ColegioApoderadoService colegioApoderadoService;
 
 	@GetMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR')")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO')")
 	public List<ColegioApoderado> listarTodos() {
 		return colegioApoderadoService.listarTodos();
 	}
 
 	@GetMapping("/colegio/{idColegio}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.ownsColegio(#idColegio))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.ownsColegio(#idColegio))")
 	public List<ColegioApoderado> listarPorColegio(@PathVariable Integer idColegio) {
 		return colegioApoderadoService.listarPorColegio(idColegio);
 	}
 
 	@GetMapping("/apoderado/{idApoderado}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.ownsApoderado(#idApoderado) or (hasRole('COLEGIO') and @authz.apoderadoAsociadoAMiColegio(#idApoderado))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.ownsApoderado(#idApoderado) or (hasRole('COLEGIO') and @authz.apoderadoAsociadoAMiColegio(#idApoderado))")
 	public List<ColegioApoderado> listarPorApoderado(@PathVariable Integer idApoderado) {
 		return colegioApoderadoService.listarPorApoderado(idApoderado);
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or @authz.puedeVerColegioApoderadoPorId(#id)")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.puedeVerColegioApoderadoPorId(#id)")
 	public ColegioApoderado obtener(@PathVariable Integer id) {
 		return colegioApoderadoService.obtener(id);
 	}
 
 	// esta parte es nueva
 	@PostMapping
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarColegioApoderadoRequest(#body))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarColegioApoderadoRequest(#body))")
 	@ResponseStatus(HttpStatus.CREATED)
 	public ColegioApoderado crear(@Valid @RequestBody ColegioApoderadoRequest body) {
 		return colegioApoderadoService.crear(body);
@@ -59,7 +59,7 @@ public class ColegioApoderadoController {
 
 	// esta parte es nueva
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMINISTRADOR') or (hasRole('COLEGIO') and @authz.colegioPuedeEliminarColegioApoderado(#id))")
+	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeEliminarColegioApoderado(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void eliminar(@PathVariable Integer id) {
 		colegioApoderadoService.eliminar(id);

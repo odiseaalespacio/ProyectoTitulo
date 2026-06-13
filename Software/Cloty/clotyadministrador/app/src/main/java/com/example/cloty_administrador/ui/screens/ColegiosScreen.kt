@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.example.cloty_administrador.data.api.Colegio
 import com.example.cloty_administrador.data.api.ColegioRequest
 import com.example.cloty_administrador.ui.ClotyViewModel
+import com.example.cloty_administrador.ui.components.EmailTextField
 import com.example.cloty_administrador.ui.components.MessageBanner
 import com.example.cloty_administrador.ui.components.RutTextField
 import com.example.cloty_administrador.ui.components.TelefonoChilenoTextField
@@ -81,6 +82,9 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             MessageBanner(error, true)
             MessageBanner(message, false, Modifier.padding(top = 8.dp))
+            if (lista.isEmpty() && !loading && error == null) {
+                Text("No hay colegios registrados.")
+            }
             LazyColumn {
                 items(lista) { c ->
                     ListItem(
@@ -110,6 +114,7 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         val editing = editColegio
         var rut by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.rut ?: "") }
         var nombre by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.nombre ?: "") }
+        var email by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.email ?: "") }
         var telefono by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.telefono ?: "") }
         var direccion by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.direccion ?: "") }
         // esto es nuevo
@@ -122,12 +127,14 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                     // esto es nuevo
                     RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                     OutlinedTextField(nombre, { nombre = it; showValidation = false }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    EmailTextField(email, { email = it; showValidation = false }, label = "Correo", obligatorio = true, showValidation = showValidation)
                     TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
                     OutlinedTextField(direccion, { direccion = it }, label = { Text("Dirección") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     ValidationMessageBanner(
                         if (showValidation) {
                             ChileValidators.primerMensajeError(
                                 ChileValidators.mensajeErrorRut(rut, mostrarVacios = true),
+                                ChileValidators.mensajeErrorEmail(email, obligatorio = true, mostrarVacios = true),
                                 ChileValidators.mensajeErrorTelefono(telefono, mostrarVacios = true),
                                 if (nombre.isBlank()) "Debe ingresar el nombre del colegio" else null
                             )
@@ -140,6 +147,7 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                     onClick = {
                         val err = ChileValidators.primerMensajeError(
                             ChileValidators.mensajeErrorRut(rut, mostrarVacios = true),
+                            ChileValidators.mensajeErrorEmail(email, obligatorio = true),
                             ChileValidators.mensajeErrorTelefono(telefono)
                         )
                         if (err != null || nombre.isBlank()) {
@@ -149,6 +157,7 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                         val req = ColegioRequest(
                             rut = ChileValidators.normalizarRutParaApi(rut),
                             nombre = nombre.trim(),
+                            email = email.trim(),
                             telefono = telefono.trim().ifBlank { null },
                             direccion = direccion.trim().ifBlank { null }
                         )

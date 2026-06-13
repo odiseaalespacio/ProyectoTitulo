@@ -11,11 +11,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.cloty_apoderado.ui.ClotyViewModel
 import com.example.cloty_apoderado.ui.screens.ActivarCuentaScreen
 import com.example.cloty_apoderado.ui.screens.LoginScreen
+import com.example.cloty_apoderado.ui.screens.RecuperarContrasenaScreen
 import com.example.cloty_apoderado.ui.screens.MainScreen
 
 object Routes {
     const val LOGIN = "login"
     const val ACTIVAR_CUENTA = "activar_cuenta"
+    const val RECUPERAR_CONTRASENA = "recuperar_contrasena"
     const val MAIN = "main"
 }
 
@@ -27,6 +29,7 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel()) {
 
     LaunchedEffect(token) {
         if (!token.isNullOrBlank()) {
+            viewModel.clearMessages()
             navController.navigate(Routes.MAIN) {
                 popUpTo(Routes.LOGIN) { inclusive = true }
             }
@@ -37,13 +40,32 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel()) {
         composable(Routes.LOGIN) {
             LoginScreen(
                 viewModel = viewModel,
-                onActivarCuenta = { navController.navigate(Routes.ACTIVAR_CUENTA) }
+                onActivarCuenta = {
+                    viewModel.clearMessages()
+                    navController.navigate(Routes.ACTIVAR_CUENTA)
+                },
+                onRecuperarContrasena = {
+                    viewModel.clearMessages()
+                    navController.navigate(Routes.RECUPERAR_CONTRASENA)
+                }
+            )
+        }
+        composable(Routes.RECUPERAR_CONTRASENA) {
+            RecuperarContrasenaScreen(
+                viewModel = viewModel,
+                onBackToLogin = {
+                    viewModel.clearMessages()
+                    navController.popBackStack()
+                }
             )
         }
         composable(Routes.ACTIVAR_CUENTA) {
             ActivarCuentaScreen(
                 viewModel = viewModel,
-                onBackToLogin = { navController.popBackStack() }
+                onBackToLogin = {
+                    viewModel.clearMessages()
+                    navController.popBackStack()
+                }
             )
         }
         composable(Routes.MAIN) {
