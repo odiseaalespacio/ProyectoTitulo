@@ -1,35 +1,29 @@
-package com.example.cloty_colegio.util
-
+﻿package com.example.cloty_colegio.util
 
 
 import android.util.Patterns
 
 
-
-// esto es nuevo
-
 object ChileValidators {
 
 
+    const val MSG_RUT_FORMATO = "Use nÃºmero y dÃ­gito verificador separados por guiÃ³n (ej: 30686957-4 o 30.686.957-4)"
 
-    const val MSG_RUT_FORMATO = "Use número y dígito verificador separados por guión (ej: 30686957-4 o 30.686.957-4)"
-
-    const val MSG_RUT_DV = "Dígito verificador incorrecto"
+    const val MSG_RUT_DV = "DÃ­gito verificador incorrecto"
 
     const val MSG_RUT_REQUERIDO = "Debe ingresar un RUT"
 
-    const val HINT_RUT = "Número-DV con guión (puntos opcionales)"
+    const val HINT_RUT = "NÃºmero-DV con guiÃ³n (puntos opcionales)"
 
-    const val MSG_EMAIL_INVALIDO = "Correo electrónico inválido"
+    const val MSG_EMAIL_INVALIDO = "Correo electrÃ³nico invÃ¡lido"
 
-    const val MSG_EMAIL_REQUERIDO = "Debe ingresar un correo electrónico"
+    const val MSG_EMAIL_REQUERIDO = "Debe ingresar un correo electrÃ³nico"
 
-    const val MSG_TELEFONO_INVALIDO = "Teléfono chileno inválido (móvil: 9 dígitos, ej: 912345678)"
+    const val MSG_TELEFONO_INVALIDO = "TelÃ©fono chileno invÃ¡lido (mÃ³vil: 9 dÃ­gitos, ej: 912345678)"
 
-    const val MSG_TELEFONO_REQUERIDO = "Debe ingresar un teléfono"
+    const val MSG_TELEFONO_REQUERIDO = "Debe ingresar un telÃ©fono"
 
-    const val HINT_TELEFONO = "Móvil: 9XXXXXXXX o +569XXXXXXXX"
-
+    const val HINT_TELEFONO = "MÃ³vil: 9XXXXXXXX o +569XXXXXXXX"
 
 
     fun normalizarRutParaApi(rut: String): String {
@@ -55,9 +49,7 @@ object ChileValidators {
     }
 
 
-
     fun esRutValido(rut: String): Boolean = mensajeErrorRut(rut) == null
-
 
 
     fun esEmailValido(email: String, obligatorio: Boolean = false): Boolean =
@@ -65,11 +57,9 @@ object ChileValidators {
         mensajeErrorEmail(email, obligatorio) == null
 
 
-
     fun esTelefonoChilenoValido(telefono: String, obligatorio: Boolean = false): Boolean =
 
         mensajeErrorTelefono(telefono, obligatorio) == null
-
 
 
     fun mensajeErrorRut(rut: String, obligatorio: Boolean = true, mostrarVacios: Boolean = false): String? {
@@ -103,7 +93,6 @@ object ChileValidators {
     }
 
 
-
     fun mensajeErrorEmail(email: String, obligatorio: Boolean = false, mostrarVacios: Boolean = false): String? {
 
         val t = email.trim()
@@ -113,7 +102,6 @@ object ChileValidators {
         return if (Patterns.EMAIL_ADDRESS.matcher(t).matches()) null else MSG_EMAIL_INVALIDO
 
     }
-
 
 
     fun mensajeErrorTelefono(telefono: String, obligatorio: Boolean = false, mostrarVacios: Boolean = false): String? {
@@ -141,11 +129,9 @@ object ChileValidators {
     }
 
 
-
     fun primerMensajeError(vararg mensajes: String?): String? =
 
         mensajes.firstOrNull { !it.isNullOrBlank() }
-
 
 
     private fun parsearRut(rut: String): Pair<String, Char>? {
@@ -171,7 +157,6 @@ object ChileValidators {
         return cuerpo to dv
 
     }
-
 
 
     private fun calcularDigitoVerificador(cuerpo: String): Char {

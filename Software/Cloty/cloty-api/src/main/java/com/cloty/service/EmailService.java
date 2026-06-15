@@ -1,5 +1,4 @@
-package com.cloty.service;
-
+﻿package com.cloty.service;
 
 
 import com.cloty.domain.Administrador;
@@ -23,9 +22,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 
-
-// esto es nuevo
-
 @Slf4j
 
 @Service
@@ -35,9 +31,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
 
-
 	private final JavaMailSender mailSender;
-
 
 
 	@Value("${cloty.mail.from}")
@@ -45,11 +39,9 @@ public class EmailService {
 	private String from;
 
 
-
 	@Value("${cloty.mail.enabled:false}")
 
 	private boolean enabled;
-
 
 
 	@Async
@@ -68,13 +60,13 @@ public class EmailService {
 				1. Abra la app Cloty Colegio.
 				2. Elija "Activar cuenta".
 				3. Ingrese su RUT (%s).
-				4. Recibirá un código de 6 dígitos en este correo.
-				5. Ingrese el código y cree su contraseña.
+				4. RecibirÃ¡ un cÃ³digo de 6 dÃ­gitos en este correo.
+				5. Ingrese el cÃ³digo y cree su contraseÃ±a.
 
 				Saludos,
 				Equipo Cloty
 				""".formatted(colegio.getNombre(), colegio.getRut());
-		enviar(destino, "Cloty — Active su cuenta de colegio", cuerpo);
+		enviar(destino, "Cloty â€” Active su cuenta de colegio", cuerpo);
 	}
 
 	@Async
@@ -87,14 +79,14 @@ public class EmailService {
 		String cuerpo = """
 				Hola %s %s,
 
-				El colegio "%s" lo registró en Cloty.
+				El colegio "%s" lo registrÃ³ en Cloty.
 
 				Para activar su cuenta:
 				1. Abra la app Cloty Apoderado.
 				2. Elija "Activar cuenta".
 				3. Ingrese su RUT (%s).
-				4. Recibirá un código de 6 dígitos en este correo.
-				5. Ingrese el código y cree su contraseña.
+				4. RecibirÃ¡ un cÃ³digo de 6 dÃ­gitos en este correo.
+				5. Ingrese el cÃ³digo y cree su contraseÃ±a.
 
 				Saludos,
 				Equipo Cloty
@@ -103,7 +95,7 @@ public class EmailService {
 				apoderado.getApellidos(),
 				colegio.getNombre(),
 				apoderado.getRut());
-		enviar(destino, "Cloty — Active su cuenta de apoderado", cuerpo);
+		enviar(destino, "Cloty â€” Active su cuenta de apoderado", cuerpo);
 	}
 
 	@Async
@@ -114,7 +106,7 @@ public class EmailService {
 
 		if (destino == null || destino.isBlank()) {
 
-			log.debug("Sin correo para código de activación del apoderado id={}", apoderado.getIdApoderado());
+			log.debug("Sin correo para cÃ³digo de activaciÃ³n del apoderado id={}", apoderado.getIdApoderado());
 
 			return;
 
@@ -125,21 +117,16 @@ public class EmailService {
 				Hola %s %s,
 
 
-
-				El colegio "%s" lo registró en Cloty.
-
+				El colegio "%s" lo registrÃ³ en Cloty.
 
 
-				Su código de activación es: %s
+				Su cÃ³digo de activaciÃ³n es: %s
 
 
-
-				Abra la app Cloty Apoderado, elija "Activar cuenta" e ingrese su RUT (%s), este código y la contraseña que desee.
-
+				Abra la app Cloty Apoderado, elija "Activar cuenta" e ingrese su RUT (%s), este cÃ³digo y la contraseÃ±a que desee.
 
 
-				El código vence en %d minutos.
-
+				El cÃ³digo vence en %d minutos.
 
 
 				Saludos,
@@ -160,10 +147,9 @@ public class EmailService {
 
 				minutosValidez);
 
-		enviar(destino, "Cloty — Código de activación", cuerpo);
+		enviar(destino, "Cloty â€” CÃ³digo de activaciÃ³n", cuerpo);
 
 	}
-
 
 
 	@Async
@@ -174,7 +160,7 @@ public class EmailService {
 
 		if (destino == null || destino.isBlank()) {
 
-			log.debug("Sin correo para código de activación del colegio id={}", colegio.getIdColegio());
+			log.debug("Sin correo para cÃ³digo de activaciÃ³n del colegio id={}", colegio.getIdColegio());
 
 			return;
 
@@ -185,21 +171,16 @@ public class EmailService {
 				Hola,
 
 
-
 				El colegio "%s" fue registrado en Cloty.
 
 
-
-				Su código de activación es: %s
-
+				Su cÃ³digo de activaciÃ³n es: %s
 
 
-				Abra la app Cloty Colegio, elija "Activar cuenta" e ingrese su RUT (%s), este código, teléfono y contraseña.
+				Abra la app Cloty Colegio, elija "Activar cuenta" e ingrese su RUT (%s), este cÃ³digo, telÃ©fono y contraseÃ±a.
 
 
-
-				El código vence en %d minutos.
-
+				El cÃ³digo vence en %d minutos.
 
 
 				Saludos,
@@ -208,10 +189,9 @@ public class EmailService {
 
 				""".formatted(colegio.getNombre(), codigo, colegio.getRut(), minutosValidez);
 
-		enviar(destino, "Cloty — Código de activación", cuerpo);
+		enviar(destino, "Cloty â€” CÃ³digo de activaciÃ³n", cuerpo);
 
 	}
-
 
 
 	@Async
@@ -231,15 +211,12 @@ public class EmailService {
 				Hola %s %s,
 
 
-
 				Su cuenta en Cloty fue activada correctamente.
-
 
 
 				Usuario: %s
 
-				Puede iniciar sesión en la app Cloty Apoderado con su RUT (%s) o su usuario.
-
+				Puede iniciar sesiÃ³n en la app Cloty Apoderado con su RUT (%s) o su usuario.
 
 
 				Saludos,
@@ -256,10 +233,9 @@ public class EmailService {
 
 				apoderado.getRut());
 
-		enviar(destino, "Cloty — Cuenta activada", cuerpo);
+		enviar(destino, "Cloty â€” Cuenta activada", cuerpo);
 
 	}
-
 
 
 	@Async
@@ -279,9 +255,7 @@ public class EmailService {
 				Hola,
 
 
-
 				La cuenta del colegio "%s" fue activada en Cloty.
-
 
 
 				Usuario: %s
@@ -289,9 +263,7 @@ public class EmailService {
 				RUT: %s
 
 
-
-				Ya puede iniciar sesión en la app Cloty Colegio.
-
+				Ya puede iniciar sesiÃ³n en la app Cloty Colegio.
 
 
 				Saludos,
@@ -300,10 +272,9 @@ public class EmailService {
 
 				""".formatted(colegio.getNombre(), username, colegio.getRut());
 
-		enviar(destino, "Cloty — Cuenta de colegio activada", cuerpo);
+		enviar(destino, "Cloty â€” Cuenta de colegio activada", cuerpo);
 
 	}
-
 
 
 	@Async
@@ -323,21 +294,17 @@ public class EmailService {
 				Hola %s %s,
 
 
-
-				Se creó su cuenta de administrador en Cloty.
-
+				Se creÃ³ su cuenta de administrador en Cloty.
 
 
 				Usuario: %s
 
 				RUT: %s
 
-				Contraseña: %s
+				ContraseÃ±a: %s
 
 
-
-				Inicie sesión en la app Cloty Administrador con su usuario o RUT y la contraseña indicada.
-
+				Inicie sesiÃ³n en la app Cloty Administrador con su usuario o RUT y la contraseÃ±a indicada.
 
 
 				Saludos,
@@ -356,54 +323,38 @@ public class EmailService {
 
 				password != null ? password : "(definida al crear la cuenta)");
 
-		enviar(destino, "Cloty — Cuenta de administrador creada", cuerpo);
+		enviar(destino, "Cloty â€” Cuenta de administrador creada", cuerpo);
 
 	}
-
 
 
 	@Async
-
-	public void enviarBienvenidaSuperUsuario(String email, String username, String rut, String password) {
-
-		if (email == null || email.isBlank()) {
-
+	public void enviarBienvenidaSuperUsuario(com.cloty.domain.SuperUsuario superUsuario, String username, String password) {
+		String destino = superUsuario.getEmail();
+		if (destino == null || destino.isBlank()) {
 			return;
-
 		}
-
 		String cuerpo = """
+				Hola %s %s,
 
-				Hola,
-
-
-
-				Se creó su cuenta de super usuario en Cloty.
-
-
+				Se creÃ³ su cuenta de super usuario en Cloty.
 
 				Usuario: %s
-
 				RUT: %s
+				ContraseÃ±a: %s
 
-				Contraseña: %s
-
-
-
-				Inicie sesión en la app Cloty Administrador con su usuario o RUT y la contraseña indicada.
-
-
+				Inicie sesiÃ³n en la app Cloty Administrador con su usuario o RUT y la contraseÃ±a indicada.
 
 				Saludos,
-
 				Equipo Cloty
-
-				""".formatted(username, rut, password);
-
-		enviar(email, "Cloty — Cuenta de super usuario creada", cuerpo);
-
+				""".formatted(
+				superUsuario.getNombres(),
+				superUsuario.getApellidos(),
+				username,
+				superUsuario.getRut(),
+				password != null ? password : "(definida al crear la cuenta)");
+		enviar(destino, "Cloty â€” Cuenta de super usuario creada", cuerpo);
 	}
-
 
 
 	@Async
@@ -414,18 +365,18 @@ public class EmailService {
 		String cuerpo = """
 				Hola,
 
-				Recibimos una solicitud para restablecer su contraseña en Cloty.
+				Recibimos una solicitud para restablecer su contraseÃ±a en Cloty.
 
-				Su código de recuperación es: %s
+				Su cÃ³digo de recuperaciÃ³n es: %s
 
-				Ingrese este código en la app junto con su RUT y la nueva contraseña.
+				Ingrese este cÃ³digo en la app junto con su RUT y la nueva contraseÃ±a.
 
-				El código vence en %d minutos. Si no solicitó este cambio, ignore este correo.
+				El cÃ³digo vence en %d minutos. Si no solicitÃ³ este cambio, ignore este correo.
 
 				Saludos,
 				Equipo Cloty
 				""".formatted(codigo, minutosValidez);
-		enviar(email, "Cloty — Recuperar contraseña", cuerpo);
+		enviar(email, "Cloty â€” Recuperar contraseÃ±a", cuerpo);
 	}
 
 	@Async
@@ -436,7 +387,7 @@ public class EmailService {
 
 		if (destino == null || destino.isBlank()) {
 
-			log.debug("Sin correo para notificación al apoderado id={}", apoderado.getIdApoderado());
+			log.debug("Sin correo para notificaciÃ³n al apoderado id={}", apoderado.getIdApoderado());
 
 			return;
 
@@ -447,17 +398,13 @@ public class EmailService {
 				Hola %s %s,
 
 
+				%s
+
 
 				%s
 
 
-
-				%s
-
-
-
-				Revise también la app Cloty Apoderado para más detalles.
-
+				Revise tambiÃ©n la app Cloty Apoderado para mÃ¡s detalles.
 
 
 				Saludos,
@@ -474,17 +421,16 @@ public class EmailService {
 
 				mensaje);
 
-		enviar(destino, "Cloty — " + titulo, cuerpo);
+		enviar(destino, "Cloty â€” " + titulo, cuerpo);
 
 	}
-
 
 
 	private void enviar(String destino, String asunto, String cuerpo) {
 
 		if (!enabled) {
 
-			log.debug("Correo deshabilitado (cloty.mail.enabled=false), no se envía a {}", destino);
+			log.debug("Correo deshabilitado (cloty.mail.enabled=false), no se envÃ­a a {}", destino);
 
 			return;
 

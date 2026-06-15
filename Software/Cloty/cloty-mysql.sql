@@ -1,5 +1,5 @@
 -- =============================================================================
--- Cloty — esquema MySQL 8 (utf8mb4)
+-- Cloty — esquema MySQL 8 / MariaDB 10.5+ (utf8mb4)
 -- Referencia / reinicio total. En desarrollo la API también puede crear la BD,
 -- tablas (Hibernate ddl-auto=update) y el super usuario inicial al arrancar.
 -- Usar este script solo para borrar todo y empezar de cero:
@@ -9,12 +9,13 @@
 CREATE DATABASE IF NOT EXISTS cloty
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
+<
 
 USE cloty;
 
 SET NAMES utf8mb4;
 
--- Limpieza (orden inverso a las FK)
+-- Limpieza (orden inverso a las dependencias)
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS notificacion;
 DROP TABLE IF EXISTS evento;
@@ -24,6 +25,8 @@ DROP TABLE IF EXISTS colegio_apoderado;
 DROP TABLE IF EXISTS curso;
 DROP TABLE IF EXISTS apoderado;
 DROP TABLE IF EXISTS colegio;
+DROP TABLE IF EXISTS codigo_activacion;
+DROP TABLE IF EXISTS super_usuario;
 DROP TABLE IF EXISTS administrador;
 DROP TABLE IF EXISTS usuario;
 SET FOREIGN_KEY_CHECKS = 1;
@@ -32,15 +35,34 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- usuario
 -- ---------------------------------------------------------------------------
 CREATE TABLE usuario (
-  id_usuario    INT AUTO_INCREMENT PRIMARY KEY,
-  username      VARCHAR(50)  NOT NULL,
-  rut           VARCHAR(12)  NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  rol           VARCHAR(20)  NOT NULL,
-  estado        TINYINT(1)   NULL,
+  id_usuario     INT AUTO_INCREMENT PRIMARY KEY,
+  username       VARCHAR(50)  NOT NULL,
+  rut            VARCHAR(12)  NULL,
+  password_hash  VARCHAR(255) NOT NULL,
+  rol            VARCHAR(20)  NOT NULL,
+  estado         TINYINT(1)   NULL,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_usuario_username (username),
   UNIQUE KEY uq_usuario_rut (rut)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------------
+-- super_usuario (perfil del rol SUPER_USUARIO; mismo modelo que administrador)
+-- ---------------------------------------------------------------------------
+CREATE TABLE super_usuario (
+  id_super_usuario INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario       INT          NOT NULL,
+  rut              VARCHAR(12)  NOT NULL,
+  nombres          VARCHAR(100) NOT NULL,
+  apellidos        VARCHAR(100) NOT NULL,
+  email            VARCHAR(150) NOT NULL,
+  telefono         VARCHAR(20)  NULL,
+  fecha_creacion   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_super_usuario_id_usuario (id_usuario),
+  UNIQUE KEY uq_super_usuario_rut (rut),
+  CONSTRAINT fk_super_usuario_usuario
+    FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
+    ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------------
@@ -48,8 +70,8 @@ CREATE TABLE usuario (
 -- ---------------------------------------------------------------------------
 CREATE TABLE administrador (
   id_administrador INT AUTO_INCREMENT PRIMARY KEY,
-  id_usuario       INT         NOT NULL,
-  rut              VARCHAR(12) NOT NULL,
+  id_usuario       INT          NOT NULL,
+  rut              VARCHAR(12)  NOT NULL,
   nombres          VARCHAR(100) NOT NULL,
   apellidos        VARCHAR(100) NOT NULL,
   email            VARCHAR(150) NOT NULL,
@@ -63,7 +85,7 @@ CREATE TABLE administrador (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------------
--- colegio (puede existir sin cuenta; email al activar)
+-- colegio (puede existir sin cuenta de acceso; email para activación)
 -- ---------------------------------------------------------------------------
 CREATE TABLE colegio (
   id_colegio     INT AUTO_INCREMENT PRIMARY KEY,
@@ -102,7 +124,7 @@ CREATE TABLE apoderado (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------------
--- curso
+-- curso (se crean desde CSV o manualmente; sin cursos por defecto)
 -- ---------------------------------------------------------------------------
 CREATE TABLE curso (
   id_curso       INT AUTO_INCREMENT PRIMARY KEY,
@@ -185,8 +207,8 @@ CREATE TABLE evento (
   tipo_evento    VARCHAR(40)  NOT NULL,
   descripcion    VARCHAR(500) NULL,
   ubicacion      VARCHAR(255) NULL,
-  fecha_evento   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  registrado_por INT NULL,
+  fecha_evento   TIMESTAMP    NULL,
+  registrado_por INT          NULL,
   CONSTRAINT fk_evento_tarjeta
     FOREIGN KEY (id_tarjeta) REFERENCES tarjeta (id_tarjeta)
     ON DELETE RESTRICT ON UPDATE CASCADE
@@ -212,11 +234,27 @@ CREATE TABLE notificacion (
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
+-- ---------------------------------------------------------------------------
+-- codigo_activacion (activación de cuentas y recuperación de contraseña)
+-- id_entidad = id_apoderado | id_colegio | id_usuario según tipo
+-- ---------------------------------------------------------------------------
+CREATE TABLE codigo_activacion (
+  id_codigo_activacion INT AUTO_INCREMENT PRIMARY KEY,
+  tipo                 VARCHAR(20)  NOT NULL,
+  id_entidad           INT          NOT NULL,
+  codigo_hash          VARCHAR(255) NOT NULL,
+  expira_en            TIMESTAMP    NOT NULL,
+  usado                TINYINT(1)   NOT NULL DEFAULT 0,
+  fecha_creacion       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_codigo_tipo_entidad (tipo, id_entidad)
+) ENGINE=InnoDB;
+
 -- Valores enum (referencia; la app usa VARCHAR):
 -- usuario.rol: SUPER_USUARIO | ADMINISTRADOR | COLEGIO | APODERADO
 -- tarjeta.estado: ACTIVA | PERDIDA | DESACTIVADA
 -- notificacion.estado: PENDIENTE | ENVIADA | ERROR
 -- evento.tipo_evento: PRENDA_ENCONTRADA | PRENDA_RECUPERADA | NOTIFICACION_ENVIADA | TARJETA_DESACTIVADA
+-- codigo_activacion.tipo: APODERADO | COLEGIO | RECUPERACION_CONTRASENA
 
 -- ---------------------------------------------------------------------------
 -- Datos iniciales
@@ -231,4 +269,13 @@ VALUES (
   '$2a$10$js51SAu/N4sQGVPKwqK4nulST86adcFFPIjXPIpBlDmPQxVQvCwR6',
   'SUPER_USUARIO',
   1
+);
+
+INSERT INTO super_usuario (id_usuario, rut, nombres, apellidos, email)
+VALUES (
+  1,
+  '00000000-0',
+  'Super',
+  'Administrador',
+  'superadmin@cloty.local'
 );

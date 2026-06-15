@@ -1,4 +1,4 @@
-package com.cloty.web;
+﻿package com.cloty.web;
 
 import com.cloty.domain.ColegioApoderado;
 import com.cloty.dto.ColegioApoderadoRequest;
@@ -49,7 +49,6 @@ public class ColegioApoderadoController {
 		return colegioApoderadoService.obtener(id);
 	}
 
-	// esta parte es nueva
 	@PostMapping
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarColegioApoderadoRequest(#body))")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -57,7 +56,6 @@ public class ColegioApoderadoController {
 		return colegioApoderadoService.crear(body);
 	}
 
-	// esta parte es nueva
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeEliminarColegioApoderado(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)

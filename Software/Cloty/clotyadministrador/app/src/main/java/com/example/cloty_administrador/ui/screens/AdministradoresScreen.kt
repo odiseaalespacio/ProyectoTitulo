@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -57,8 +58,8 @@ fun AdministradoresScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var showDialog by rememberSaveable { mutableStateOf(false) }
-    var editAdmin by rememberSaveable { mutableStateOf<Administrador?>(null) }
-    var confirmDelete by rememberSaveable { mutableStateOf<Administrador?>(null) }
+    var editAdmin by remember { mutableStateOf<Administrador?>(null) }
+    var confirmDelete by remember { mutableStateOf<Administrador?>(null) }
 
     LaunchedEffect(Unit) { viewModel.cargarAdministradores() }
 

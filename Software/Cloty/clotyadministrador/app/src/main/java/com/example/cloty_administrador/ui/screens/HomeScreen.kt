@@ -1,4 +1,4 @@
-package com.example.cloty_administrador.ui.screens
+﻿package com.example.cloty_administrador.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,7 +45,6 @@ fun HomeScreen(
 ) {
     val itemsOperativos = listOf(
         MenuItem("Colegios", "colegios", Icons.Default.School),
-        // esta parte es nueva
         MenuItem("Apoderados y alumnos", "gestion_personas", Icons.Default.Groups),
         MenuItem("Cursos", "cursos", Icons.Default.Class),
         MenuItem("Carga CSV", "carga_csv", Icons.Default.Upload),
@@ -64,11 +63,11 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(if (esSuperUsuario) "Panel Cloty — Super" else "Panel Cloty")
+                    Text(if (esSuperUsuario) "Panel Cloty â€” Super" else "Panel Cloty")
                 },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión")
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesiÃ³n")
                     }
                 }
             )

@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -51,8 +52,8 @@ fun CursosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var idColegio by rememberSaveable { mutableIntStateOf(0) }
-    var editCurso by rememberSaveable { mutableStateOf<Curso?>(null) }
-    var confirmDelete by rememberSaveable { mutableStateOf<Curso?>(null) }
+    var editCurso by remember { mutableStateOf<Curso?>(null) }
+    var confirmDelete by remember { mutableStateOf<Curso?>(null) }
 
     LaunchedEffect(Unit) { viewModel.cargarColegios() }
     LaunchedEffect(colegios, idColegio) {

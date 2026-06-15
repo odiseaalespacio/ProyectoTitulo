@@ -1,4 +1,4 @@
-package com.example.cloty_administrador.ui.screens
+﻿package com.example.cloty_administrador.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -52,10 +53,8 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var showDialog by rememberSaveable { mutableStateOf(false) }
-    // esta parte es nueva
-    var editColegio by rememberSaveable { mutableStateOf<Colegio?>(null) }
-    // esta parte es nueva
-    var confirmDelete by rememberSaveable { mutableStateOf<Colegio?>(null) }
+    var editColegio by remember { mutableStateOf<Colegio?>(null) }
+    var confirmDelete by remember { mutableStateOf<Colegio?>(null) }
 
     LaunchedEffect(Unit) { viewModel.cargarColegios() }
 
@@ -89,8 +88,7 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                 items(lista) { c ->
                     ListItem(
                         headlineContent = { Text(c.nombre) },
-                        supportingContent = { Text("RUT ${c.rut} · ID ${c.idColegio}") },
-                        // esta parte es nueva
+                        supportingContent = { Text("RUT ${c.rut} Â· ID ${c.idColegio}") },
                         trailingContent = {
                             Row {
                                 IconButton(onClick = {
@@ -117,19 +115,17 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         var email by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.email ?: "") }
         var telefono by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.telefono ?: "") }
         var direccion by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.direccion ?: "") }
-        // esto es nuevo
         var showValidation by rememberSaveable(editing?.idColegio) { mutableStateOf(false) }
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text(if (editing == null) "Registrar colegio" else "Editar colegio") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // esto es nuevo
                     RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                     OutlinedTextField(nombre, { nombre = it; showValidation = false }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     EmailTextField(email, { email = it; showValidation = false }, label = "Correo", obligatorio = true, showValidation = showValidation)
                     TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
-                    OutlinedTextField(direccion, { direccion = it }, label = { Text("Dirección") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(direccion, { direccion = it }, label = { Text("DirecciÃ³n") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     ValidationMessageBanner(
                         if (showValidation) {
                             ChileValidators.primerMensajeError(
@@ -161,7 +157,6 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                             telefono = telefono.trim().ifBlank { null },
                             direccion = direccion.trim().ifBlank { null }
                         )
-                        // esta parte es nueva
                         if (editing != null) {
                             viewModel.actualizarColegio(editing.idColegio, req)
                         } else {
@@ -176,12 +171,11 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         )
     }
 
-    // esta parte es nueva
     confirmDelete?.let { c ->
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
             title = { Text("Eliminar colegio") },
-            text = { Text("¿Eliminar ${c.nombre}? Solo es posible si no tiene datos vinculados.") },
+            text = { Text("Â¿Eliminar ${c.nombre}? Solo es posible si no tiene datos vinculados.") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarColegio(c.idColegio)

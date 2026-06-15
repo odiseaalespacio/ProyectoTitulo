@@ -1,4 +1,4 @@
-package com.example.cloty_apoderado.ui.components
+﻿package com.example.cloty_apoderado.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,13 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.cloty_apoderado.util.ChileValidators
 
-// esto es nuevo
 @Composable
 fun ValidationMessageBanner(message: String?) {
     MessageBanner(message, isError = true)
 }
 
-// esto es nuevo
 @Composable
 fun RutTextField(
     value: String,
@@ -46,7 +44,6 @@ fun RutTextField(
     )
 }
 
-// esto es nuevo
 @Composable
 fun EmailTextField(
     value: String,
@@ -78,13 +75,12 @@ fun EmailTextField(
     )
 }
 
-// esto es nuevo
 @Composable
 fun TelefonoChilenoTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier.fillMaxWidth(),
-    label: String = "Teléfono",
+    label: String = "TelÃ©fono",
     obligatorio: Boolean = false,
     showValidation: Boolean = false
 ) {

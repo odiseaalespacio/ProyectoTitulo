@@ -1,4 +1,4 @@
-package com.example.cloty_administrador.ui.navigation
+﻿package com.example.cloty_administrador.ui.navigation
 
 object Routes {
     const val LOGIN = "login"
@@ -7,7 +7,6 @@ object Routes {
     const val SUPER_USUARIOS = "super_usuarios"
     const val ADMINISTRADORES = "administradores"
     const val COLEGIOS = "colegios"
-    // esta parte es nueva
     const val GESTION_PERSONAS = "gestion_personas"
     const val CURSOS = "cursos"
     const val CARGA_CSV = "carga_csv"

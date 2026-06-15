@@ -1,4 +1,4 @@
-package com.example.cloty_apoderado
+﻿package com.example.cloty_apoderado
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -21,7 +21,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // esta parte es nueva
         NotificationHelper.createChannel(this)
         requestNotificationPermissionIfNeeded()
 

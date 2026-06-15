@@ -1,4 +1,4 @@
-package com.example.cloty_apoderado.data.api
+﻿package com.example.cloty_apoderado.data.api
 
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -33,7 +33,6 @@ interface ClotyApi {
     @POST("api/auth/cambiar-contrasena")
     suspend fun cambiarContrasena(@Body body: CambiarContrasenaRequest)
 
-    // esta parte es nueva
     @GET("api/apoderados/{id}")
     suspend fun obtenerApoderado(@Path("id") id: Int): Apoderado
 

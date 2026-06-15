@@ -1,4 +1,4 @@
-package com.example.cloty_administrador.ui.components
+﻿package com.example.cloty_administrador.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,7 +21,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.cloty_administrador.util.ChileValidators
 
-// esto es nuevo
 @Composable
 fun PasswordTextField(
     value: String,
@@ -46,7 +45,7 @@ fun PasswordTextField(
             IconButton(onClick = { visible = !visible }) {
                 Icon(
                     if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = if (visible) "Ocultar contraseña" else "Mostrar contraseña",
+                    contentDescription = if (visible) "Ocultar contraseÃ±a" else "Mostrar contraseÃ±a",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -54,13 +53,11 @@ fun PasswordTextField(
     )
 }
 
-// esto es nuevo
 @Composable
 fun ValidationMessageBanner(message: String?) {
     MessageBanner(message, isError = true)
 }
 
-// esto es nuevo
 @Composable
 fun RutTextField(
     value: String,
@@ -90,7 +87,6 @@ fun RutTextField(
     )
 }
 
-// esto es nuevo
 @Composable
 fun EmailTextField(
     value: String,
@@ -122,13 +118,12 @@ fun EmailTextField(
     )
 }
 
-// esto es nuevo
 @Composable
 fun TelefonoChilenoTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier.fillMaxWidth(),
-    label: String = "Teléfono",
+    label: String = "TelÃ©fono",
     obligatorio: Boolean = false,
     showValidation: Boolean = false
 ) {

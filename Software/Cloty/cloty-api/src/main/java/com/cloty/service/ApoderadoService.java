@@ -1,4 +1,4 @@
-package com.cloty.service;
+﻿package com.cloty.service;
 
 import com.cloty.domain.Apoderado;
 import com.cloty.dto.ApoderadoRequest;
@@ -22,7 +22,6 @@ import java.util.Objects;
 public class ApoderadoService {
 
 	private final ApoderadoRepository apoderadoRepository;
-	// esta parte es nueva
 	private final ColegioApoderadoRepository colegioApoderadoRepository;
 	private final ColegioRepository colegioRepository;
 	private final UsuarioRepository usuarioRepository;
@@ -39,7 +38,6 @@ public class ApoderadoService {
 				.orElseThrow(() -> new ResourceNotFoundException("Apoderado no encontrado: " + id));
 	}
 
-	// esta parte es nueva
 	@Transactional(readOnly = true)
 	public List<Apoderado> listarPorColegio(Integer idColegio) {
 		if (!colegioRepository.existsById(idColegio)) {
@@ -61,13 +59,12 @@ public class ApoderadoService {
 		if (req.idUsuario() != null) {
 			asegurarUsuario(req.idUsuario());
 			apoderadoRepository.findByIdUsuario(req.idUsuario()).ifPresent(a -> {
-				throw new ConflictException("El usuario ya está asociado a un apoderado");
+				throw new ConflictException("El usuario ya estÃ¡ asociado a un apoderado");
 			});
 		}
-		// esto es nuevo
 		String rutNorm = ChileValidacion.formatearRutConGuion(req.rut());
 		if (apoderadoRepository.existsByRut(rutNorm)) {
-			throw new ConflictException("El RUT ya está registrado");
+			throw new ConflictException("El RUT ya estÃ¡ registrado");
 		}
 		Apoderado a = Apoderado.builder()
 				.idUsuario(req.idUsuario())
@@ -89,16 +86,15 @@ public class ApoderadoService {
 				asegurarUsuario(req.idUsuario());
 				apoderadoRepository.findByIdUsuario(req.idUsuario()).ifPresent(otro -> {
 					if (!otro.getIdApoderado().equals(id)) {
-						throw new ConflictException("El usuario ya está asociado a otro apoderado");
+						throw new ConflictException("El usuario ya estÃ¡ asociado a otro apoderado");
 					}
 				});
 				a.setIdUsuario(req.idUsuario());
 			}
 		}
-		// esto es nuevo
 		String rutNorm = ChileValidacion.formatearRutConGuion(req.rut());
 		if (!rutNorm.equals(a.getRut()) && apoderadoRepository.existsByRut(rutNorm)) {
-			throw new ConflictException("El RUT ya está registrado");
+			throw new ConflictException("El RUT ya estÃ¡ registrado");
 		}
 		a.setRut(rutNorm);
 		a.setNombres(req.nombres());

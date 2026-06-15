@@ -1,4 +1,4 @@
-package com.example.cloty_colegio.data
+﻿package com.example.cloty_colegio.data
 
 import com.example.cloty_colegio.data.api.ActivarCuentaColegioRequest
 import com.example.cloty_colegio.data.api.SolicitarCodigoActivacionRequest
@@ -66,7 +66,6 @@ class ClotyRepository(context: android.content.Context) {
             com.example.cloty_colegio.data.api.CambiarContrasenaRequest(actual, nueva)
         )
 
-    // esta parte es nueva
     suspend fun obtenerColegio(id: Int) = api.obtenerColegio(id)
 
     suspend fun actualizarColegio(id: Int, req: ColegioRequest) = api.actualizarColegio(id, req)

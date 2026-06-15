@@ -1,9 +1,17 @@
-package com.example.cloty_administrador.ui.navigation
+﻿package com.example.cloty_administrador.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,6 +30,7 @@ import com.example.cloty_administrador.ui.screens.LoginScreen
 import com.example.cloty_administrador.ui.screens.RecuperarContrasenaScreen
 import com.example.cloty_administrador.ui.screens.SuperUsuariosScreen
 import com.example.cloty_administrador.ui.screens.TarjetasNfcScreen
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String? = null) {
@@ -30,6 +39,20 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
     val token by viewModel.tokenFlow.collectAsState(initial = null)
     val rol by viewModel.rolFlow.collectAsState(initial = null)
     val esSuper = rol == TokenStore.ROL_SUPER_USUARIO
+    var sessionReady by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.tokenFlow.first()
+        sessionReady = true
+    }
+
+    if (!sessionReady) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     val start = if (token.isNullOrBlank()) Routes.LOGIN else Routes.HOME
 
     LaunchedEffect(navBackStackEntry?.destination?.route) {
@@ -37,7 +60,7 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
     }
 
     LaunchedEffect(token) {
-        if (!token.isNullOrBlank()) {
+        if (!token.isNullOrBlank() && navBackStackEntry?.destination?.route == Routes.LOGIN) {
             navController.navigate(Routes.HOME) {
                 popUpTo(Routes.LOGIN) { inclusive = true }
             }
@@ -90,7 +113,6 @@ fun ClotyNavGraph(viewModel: ClotyViewModel = viewModel(), ultimoUidNfc: String?
         composable(Routes.COLEGIOS) {
             ColegiosScreen(viewModel, onBack = { navController.popBackStack() })
         }
-        // esta parte es nueva
         composable(Routes.GESTION_PERSONAS) {
             GestionPersonasScreen(viewModel, onBack = { navController.popBackStack() })
         }

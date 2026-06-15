@@ -1,0 +1,17 @@
+[Unit]
+Description=Cloty API (Spring Boot)
+After=network.target mariadb.service
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user
+EnvironmentFile=/home/ec2-user/cloty.env
+ExecStart=/usr/bin/java -jar /home/ec2-user/cloty-api.jar
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/ec2-user/cloty-api.log
+StandardError=append:/home/ec2-user/cloty-api.log
+
+[Install]
+WantedBy=multi-user.target

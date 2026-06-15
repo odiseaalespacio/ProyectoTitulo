@@ -1,4 +1,4 @@
-package com.example.cloty_colegio.data.api
+﻿package com.example.cloty_colegio.data.api
 
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -39,7 +39,6 @@ interface ClotyApi {
     @POST("api/auth/cambiar-contrasena")
     suspend fun cambiarContrasena(@Body body: CambiarContrasenaRequest)
 
-    // esta parte es nueva
     @GET("api/colegios/{id}")
     suspend fun obtenerColegio(@Path("id") id: Int): Colegio
 

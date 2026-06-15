@@ -1,4 +1,4 @@
-package com.example.cloty_colegio.ui
+﻿package com.example.cloty_colegio.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -40,7 +40,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _nombreColegio = MutableStateFlow<String?>(null)
     val nombreColegio: StateFlow<String?> = _nombreColegio.asStateFlow()
 
-    // esta parte es nueva
     private val _idColegio = MutableStateFlow<Int?>(null)
     val idColegio: StateFlow<Int?> = _idColegio.asStateFlow()
 
@@ -59,7 +58,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _nfcScanCount = MutableStateFlow(0)
     val nfcScanCount: StateFlow<Int> = _nfcScanCount.asStateFlow()
 
-    // esta parte es nueva
     private val _apoderados = MutableStateFlow<List<Apoderado>>(emptyList())
     val apoderados: StateFlow<List<Apoderado>> = _apoderados.asStateFlow()
 
@@ -71,7 +69,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val scanMutex = Mutex()
 
-    var ubicacionEscaneo: String = "Secretaría"
+    var ubicacionEscaneo: String = "SecretarÃ­a"
 
     fun onNfcTagDetected(uid: String) {
         _ultimoUidNfc.value = uid
@@ -107,7 +105,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun restablecerContrasena(rut: String, codigo: String, password: String, onExito: () -> Unit) = launchTask {
         repo.restablecerContrasena(rut, codigo, password)
-        _message.value = "Contraseña actualizada. Ya puede iniciar sesión."
+        _message.value = "ContraseÃ±a actualizada. Ya puede iniciar sesiÃ³n."
         onExito()
     }
 
@@ -146,7 +144,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         val me = repo.me()
         _idColegio.value = me.idColegio
         _nombreColegio.value = me.username
-        // esta parte es nueva
         me.idColegio?.let { id ->
             _colegio.value = repo.obtenerColegio(id)
             _nombreColegio.value = _colegio.value?.nombre ?: me.username
@@ -159,7 +156,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _idColegio.value = _dashboard.value?.idColegio ?: _idColegio.value
     }
 
-    // esta parte es nueva
     fun cargarGestion() = launchTask {
         val id = requireColegioId()
         _apoderados.value = repo.listarApoderadosPorColegio(id)
@@ -167,7 +163,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _cursos.value = repo.listarCursos(id)
     }
 
-    // esta parte es nueva
     fun cargarColegio() = launchTask {
         val id = requireColegioId()
         _colegio.value = repo.obtenerColegio(id)
@@ -265,7 +260,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun cambiarContrasena(actual: String, nueva: String) = launchTask {
         repo.cambiarContrasena(actual, nueva)
-        _message.value = "Contraseña actualizada correctamente"
+        _message.value = "ContraseÃ±a actualizada correctamente"
     }
 
     fun clearError() {
@@ -281,7 +276,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _message.value = null
     }
 
-    // esta parte es nueva
     private suspend fun cargarGestionInternal(idColegio: Int) {
         _apoderados.value = repo.listarApoderadosPorColegio(idColegio)
         _alumnos.value = repo.listarAlumnosPorColegio(idColegio)
@@ -291,7 +285,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private fun requireColegioId(): Int {
         val id = _idColegio.value
         if (id == null || id <= 0) {
-            throw IllegalStateException("No se pudo identificar el colegio de la sesión")
+            throw IllegalStateException("No se pudo identificar el colegio de la sesiÃ³n")
         }
         return id
     }

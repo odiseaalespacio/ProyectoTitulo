@@ -12,6 +12,7 @@ import com.cloty.repo.CursoRepository;
 import com.cloty.repo.EventoRepository;
 import com.cloty.repo.NotificacionRepository;
 import com.cloty.repo.TarjetaRepository;
+import com.cloty.repo.SuperUsuarioRepository;
 import com.cloty.repo.UsuarioRepository;
 import com.cloty.web.error.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class CascadeEliminacionService {
 	private final EventoRepository eventoRepository;
 	private final NotificacionRepository notificacionRepository;
 	private final CodigoActivacionRepository codigoActivacionRepository;
+	private final SuperUsuarioRepository superUsuarioRepository;
 	private final UsuarioRepository usuarioRepository;
 
 	@Transactional
@@ -139,10 +141,19 @@ public class CascadeEliminacionService {
 	}
 
 	@Transactional
+	public void eliminarSuperUsuarioCompleto(Integer idSuperUsuario, Integer idUsuario) {
+		eliminarCodigosRecuperacionUsuario(idUsuario);
+		if (idUsuario != null) {
+			eliminarUsuarioSiExiste(idUsuario);
+		}
+	}
+
+	@Transactional
 	public void eliminarUsuarioCompleto(Integer idUsuario) {
 		if (!usuarioRepository.existsById(idUsuario)) {
 			throw new ResourceNotFoundException("Usuario no encontrado: " + idUsuario);
 		}
+		superUsuarioRepository.findByIdUsuario(idUsuario).ifPresent(s -> superUsuarioRepository.delete(s));
 		eliminarCodigosRecuperacionUsuario(idUsuario);
 		usuarioRepository.deleteById(idUsuario);
 	}

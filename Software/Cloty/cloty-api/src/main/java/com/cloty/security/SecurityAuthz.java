@@ -1,8 +1,7 @@
-package com.cloty.security;
+﻿package com.cloty.security;
 
 import com.cloty.domain.Alumno;
 import com.cloty.domain.RolUsuario;
-// esta parte es nueva
 import com.cloty.dto.AlumnoRequest;
 import com.cloty.dto.ColegioApoderadoRequest;
 import com.cloty.dto.CursoRequest;
@@ -182,7 +181,6 @@ public class SecurityAuthz {
 		return p != null && p.getRol() == RolUsuario.COLEGIO && ownsNotificacion(idNotificacion);
 	}
 
-	// esta parte es nueva
 	public boolean colegioPuedeGestionarAlumnoRequest(AlumnoRequest req) {
 		ClotyUserDetails p = principal();
 		if (p == null || p.getRol() != RolUsuario.COLEGIO || p.getIdColegio() == null || req == null) {

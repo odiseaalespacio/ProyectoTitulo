@@ -1,4 +1,4 @@
-package com.example.cloty_administrador.data.api
+﻿package com.example.cloty_administrador.data.api
 
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -40,6 +40,18 @@ interface ClotyApi {
     @DELETE("api/usuarios/{id}")
     suspend fun eliminarUsuario(@Path("id") id: Int)
 
+    @GET("api/super-usuarios")
+    suspend fun listarSuperUsuarios(): List<SuperUsuario>
+
+    @POST("api/super-usuarios/completo")
+    suspend fun crearSuperUsuario(@Body body: SuperUsuarioCompletoRequest): SuperUsuario
+
+    @PUT("api/super-usuarios/{id}")
+    suspend fun actualizarSuperUsuario(@Path("id") id: Int, @Body body: SuperUsuarioRequest): SuperUsuario
+
+    @DELETE("api/super-usuarios/{id}")
+    suspend fun eliminarSuperUsuario(@Path("id") id: Int)
+
     @GET("api/administradores")
     suspend fun listarAdministradores(): List<Administrador>
 
@@ -58,55 +70,42 @@ interface ClotyApi {
     @POST("api/colegios")
     suspend fun crearColegio(@Body body: ColegioRequest): Colegio
 
-    // esta parte es nueva
     @PUT("api/colegios/{id}")
     suspend fun actualizarColegio(@Path("id") id: Int, @Body body: ColegioRequest): Colegio
 
-    // esta parte es nueva
     @DELETE("api/colegios/{id}")
     suspend fun eliminarColegio(@Path("id") id: Int)
 
-    // esta parte es nueva
     @GET("api/apoderados/colegio/{idColegio}")
     suspend fun listarApoderadosPorColegio(@Path("idColegio") idColegio: Int): List<Apoderado>
 
-    // esta parte es nueva
     @GET("api/apoderados")
     suspend fun listarApoderados(): List<Apoderado>
 
-    // esta parte es nueva
     @POST("api/apoderados")
     suspend fun crearApoderado(@Body body: ApoderadoRequest): Apoderado
 
-    // esta parte es nueva
     @PUT("api/apoderados/{id}")
     suspend fun actualizarApoderado(@Path("id") id: Int, @Body body: ApoderadoRequest): Apoderado
 
-    // esta parte es nueva
     @DELETE("api/apoderados/{id}")
     suspend fun eliminarApoderado(@Path("id") id: Int)
 
-    // esta parte es nueva
     @GET("api/colegio-apoderados/colegio/{idColegio}")
     suspend fun listarColegioApoderados(@Path("idColegio") idColegio: Int): List<ColegioApoderado>
 
-    // esta parte es nueva
     @POST("api/colegio-apoderados")
     suspend fun crearColegioApoderado(@Body body: ColegioApoderadoRequest): ColegioApoderado
 
-    // esta parte es nueva
     @GET("api/alumnos/colegio/{idColegio}")
     suspend fun listarAlumnosPorColegio(@Path("idColegio") idColegio: Int): List<Alumno>
 
-    // esta parte es nueva
     @POST("api/alumnos")
     suspend fun crearAlumno(@Body body: AlumnoRequest): Alumno
 
-    // esta parte es nueva
     @PUT("api/alumnos/{id}")
     suspend fun actualizarAlumno(@Path("id") id: Int, @Body body: AlumnoRequest): Alumno
 
-    // esta parte es nueva
     @DELETE("api/alumnos/{id}")
     suspend fun eliminarAlumno(@Path("id") id: Int)
 

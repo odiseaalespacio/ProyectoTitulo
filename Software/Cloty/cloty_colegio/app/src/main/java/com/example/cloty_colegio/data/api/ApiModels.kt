@@ -1,4 +1,4 @@
-package com.example.cloty_colegio.data.api
+﻿package com.example.cloty_colegio.data.api
 
 data class LoginRequest(val identificador: String, val password: String)
 
@@ -76,7 +76,6 @@ data class ActividadReciente(
     val descripcion: String?
 )
 
-// esta parte es nueva
 data class ColegioRequest(
     val idUsuario: Int? = null,
     val rut: String,

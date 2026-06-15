@@ -1,8 +1,7 @@
-package com.example.cloty_colegio.util
+﻿package com.example.cloty_colegio.util
 
 import retrofit2.HttpException
 
-// esto es nuevo
 object ApiErrorParser {
 
     fun mensaje(e: Throwable): String {
@@ -10,24 +9,24 @@ object ApiErrorParser {
             val cuerpo = e.response()?.errorBody()?.string().orEmpty()
             mensajeJson(cuerpo)?.let { return it }
             return when (e.code()) {
-                401 -> "Sesión expirada. Vuelva a iniciar sesión."
-                403 -> "No tiene permiso para realizar esta operación."
-                404 -> "No se encontró la información solicitada."
-                409 -> "No se pudo completar la operación porque hay datos en conflicto."
-                400 -> "Solicitud inválida. Revise los datos ingresados."
+                401 -> "SesiÃ³n expirada. Vuelva a iniciar sesiÃ³n."
+                403 -> "No tiene permiso para realizar esta operaciÃ³n."
+                404 -> "No se encontrÃ³ la informaciÃ³n solicitada."
+                409 -> "No se pudo completar la operaciÃ³n porque hay datos en conflicto."
+                400 -> "Solicitud invÃ¡lida. Revise los datos ingresados."
                 else -> "Error del servidor (${e.code()}). Intente nuevamente."
             }
         }
         val raw = e.message.orEmpty()
         mensajeJson(raw)?.let { return it }
         return when {
-            raw.contains("403") -> "No tiene permiso para realizar esta operación."
-            raw.contains("401") -> "Sesión expirada. Vuelva a iniciar sesión."
-            raw.contains("404") -> "No se encontró la información solicitada."
-            raw.contains("409") -> "No se pudo completar la operación porque hay datos en conflicto."
-            raw.contains("400") -> "Solicitud inválida. Revise los datos ingresados."
+            raw.contains("403") -> "No tiene permiso para realizar esta operaciÃ³n."
+            raw.contains("401") -> "SesiÃ³n expirada. Vuelva a iniciar sesiÃ³n."
+            raw.contains("404") -> "No se encontrÃ³ la informaciÃ³n solicitada."
+            raw.contains("409") -> "No se pudo completar la operaciÃ³n porque hay datos en conflicto."
+            raw.contains("400") -> "Solicitud invÃ¡lida. Revise los datos ingresados."
             raw.isNotBlank() -> raw
-            else -> "Ocurrió un error inesperado. Intente nuevamente."
+            else -> "OcurriÃ³ un error inesperado. Intente nuevamente."
         }
     }
 

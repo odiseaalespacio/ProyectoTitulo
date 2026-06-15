@@ -1,4 +1,4 @@
-package com.cloty.service;
+﻿package com.cloty.service;
 
 import com.cloty.domain.EstadoNotificacion;
 import com.cloty.domain.Notificacion;
@@ -22,7 +22,6 @@ public class NotificacionService {
 	private final EventoRepository eventoRepository;
 	private final ApoderadoRepository apoderadoRepository;
 	private final ColegioRepository colegioRepository;
-	// esto es nuevo
 	private final EmailService emailService;
 
 	@Transactional(readOnly = true)
@@ -52,7 +51,7 @@ public class NotificacionService {
 	@Transactional(readOnly = true)
 	public Notificacion obtener(Integer id) {
 		return notificacionRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Notificación no encontrada: " + id));
+				.orElseThrow(() -> new ResourceNotFoundException("NotificaciÃ³n no encontrada: " + id));
 	}
 
 	@Transactional
@@ -72,7 +71,6 @@ public class NotificacionService {
 				.leida(req.leida() != null ? req.leida() : Boolean.FALSE)
 				.build();
 		n = notificacionRepository.save(n);
-		// esto es nuevo
 		apoderadoRepository.findById(req.idApoderado()).ifPresent(apoderado ->
 				emailService.enviarNotificacionApoderado(apoderado, req.titulo(), req.mensaje()));
 		return n;
@@ -110,7 +108,7 @@ public class NotificacionService {
 	@Transactional
 	public void eliminar(Integer id) {
 		if (!notificacionRepository.existsById(id)) {
-			throw new ResourceNotFoundException("Notificación no encontrada: " + id);
+			throw new ResourceNotFoundException("NotificaciÃ³n no encontrada: " + id);
 		}
 		notificacionRepository.deleteById(id);
 	}

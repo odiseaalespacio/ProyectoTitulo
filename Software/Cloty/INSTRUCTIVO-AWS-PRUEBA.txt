@@ -1,0 +1,507 @@
+================================================================================
+  CLOTY — INSTRUCTIVO AWS (MODO PRUEBA — LO MÁS FÁCIL POSIBLE)
+  Incluye: API en internet + correos (Gmail) + apps Android
+================================================================================
+
+Objetivo:
+  Subir cloty-api a internet para que las apps Android (administrador,
+  apoderado, colegio) la consuman desde cualquier red, CON envío de correos
+  (activación, recuperación de contraseña, bienvenida admin/super usuario).
+
+Enfoque elegido (el más simple):
+  - 1 sola máquina EC2 (servidor virtual en AWS)
+  - Java + MariaDB (MySQL compatible) + JAR de Spring Boot en la misma máquina
+  - Correo vía Gmail SMTP (contraseña de aplicación)
+  - Perfil Spring "aws" (application-aws.properties del proyecto)
+  - SIN Docker, SIN RDS, SIN dominio, SIN HTTPS (solo prueba)
+
+Tiempo estimado: 1 a 2 horas la primera vez.
+
+IMPORTANTE — SEGURIDAD:
+  Este instructivo es SOLO para pruebas/demos (proyecto de título).
+  La API quedará en HTTP (no cifrado) y el puerto 8080 abierto al mundo.
+  NO uses contraseñas reales de producción ni datos sensibles reales.
+  Apaga la instancia EC2 cuando no la uses (ahorra dinero).
+
+
+================================================================================
+  PARTE 0 — QUÉ NECESITAS ANTES DE EMPEZAR
+================================================================================
+
+En tu PC (Windows):
+  [ ] Cuenta AWS (tarjeta para verificación; free tier ayuda)
+  [ ] Proyecto Cloty compilando (cloty-api con mvnw)
+  [ ] Cliente SSH (PowerShell/OpenSSH de Windows suele bastar)
+  [ ] Apps Android del proyecto (clotyadministrador, cloty_apoderado, cloty_colegio)
+
+Para CORREOS (obligatorio si quieres activación/recuperación):
+  [ ] Cuenta Gmail (puede ser la que ya usas en desarrollo)
+  [ ] Verificación en 2 pasos activada en Google
+  [ ] Contraseña de aplicación de Gmail (16 caracteres) — ver Parte 0B
+
+En AWS crearás:
+  [ ] 1 instancia EC2 (Amazon Linux 2023, t2.micro o t3.micro)
+  [ ] 1 par de claves .pem para conectarte por SSH
+  [ ] 1 regla de firewall (Security Group) que permita puerto 8080
+
+
+================================================================================
+  PARTE 0B — OBTENER CONTRASEÑA DE APLICACIÓN DE GMAIL
+================================================================================
+
+La API usa SMTP de Gmail. NO uses tu contraseña normal de Google.
+
+1. Entra a https://myaccount.google.com/ con la cuenta Gmail que enviará correos.
+
+2. Seguridad → Verificación en 2 pasos → actívala si no está activa.
+
+3. Seguridad → Contraseñas de aplicaciones (o busca "App passwords").
+
+4. Crea una contraseña para "Correo" / "Otro (Cloty API)".
+
+5. Google te dará 16 caracteres (ej. pfnx nhcc cbye pzpz). Anótalos.
+
+6. Esa contraseña irá en el servidor en SPRING_MAIL_PASSWORD (Parte 5).
+
+Si ya tienes application-local.properties en tu PC con Gmail configurado,
+puedes usar el mismo correo y la misma contraseña de aplicación.
+
+
+================================================================================
+  PARTE 1 — CREAR LA INSTANCIA EC2
+================================================================================
+
+1. Entra a https://console.aws.amazon.com/ e inicia sesión.
+
+2. Arriba busca "EC2" y abre el servicio EC2.
+
+3. Menú izquierdo → "Instancias" → botón "Lanzar instancias".
+
+4. Configuración recomendada:
+
+   Nombre: cloty-api-prueba
+
+   Imagen (AMI): Amazon Linux 2023 (gratis en free tier)
+
+   Tipo de instancia: t2.micro o t3.micro (free tier)
+
+   Par de claves:
+     - Si no tienes uno, "Crear nuevo par de claves"
+     - Nombre: cloty-ec2-key
+     - Tipo: RSA, formato .pem
+     - DESCARGA el archivo cloty-ec2-key.pem y guárdalo en un lugar seguro
+       (ej. C:\Users\TU_USUARIO\.aws\cloty-ec2-key.pem)
+
+   Configuración de red → Editar:
+     - Crear grupo de seguridad nuevo: cloty-sg-prueba
+     - Reglas de ENTRADA (inbound):
+         Tipo SSH    | Puerto 22   | Origen: Mi IP   (más seguro)
+         Tipo Custom | Puerto 8080 | Origen: 0.0.0.0/0  (cualquiera — solo prueba)
+
+   Almacenamiento: 8–20 GB gp3 (default está bien)
+
+5. Clic "Lanzar instancia".
+
+6. Espera estado "En ejecución" (running).
+
+7. Anota la IP PÚBLICA de la instancia (ej. 54.123.45.67).
+
+   Tip: asigna "IP elástica" (Elastic IP) si no quieres que cambie al reiniciar:
+     EC2 → IP elásticas → Asignar → Asociar a tu instancia.
+
+
+================================================================================
+  PARTE 2 — CONECTARTE POR SSH DESDE WINDOWS
+================================================================================
+
+1. Abre PowerShell.
+
+2. Ajusta permisos del .pem (solo la primera vez):
+   icacls "C:\Users\TU_USUARIO\.aws\cloty-ec2-key.pem" /inheritance:r
+   icacls "C:\Users\TU_USUARIO\.aws\cloty-ec2-key.pem" /grant:r "%USERNAME%:R"
+
+3. Conéctate (reemplaza IP y ruta del .pem):
+   ssh -i "C:\Users\TU_USUARIO\.aws\cloty-ec2-key.pem" ec2-user@54.123.45.67
+
+   Usuario en Amazon Linux: ec2-user
+
+   Si falla: revisa Security Group (puerto 22) y que la instancia esté "running".
+
+
+================================================================================
+  PARTE 3 — INSTALAR JAVA Y MARIADB EN EL SERVIDOR
+================================================================================
+
+Ejecuta estos comandos DENTRO del SSH (como ec2-user):
+
+--- Java 17 ---
+sudo dnf install -y java-17-amazon-corretto-headless
+java -version
+# Debe mostrar openjdk/corretto 17
+
+--- MariaDB (compatible con MySQL) ---
+sudo dnf install -y mariadb105-server
+sudo systemctl enable mariadb
+sudo systemctl start mariadb
+
+--- Crear base de datos y usuario ---
+sudo mysql -u root <<'EOF'
+CREATE DATABASE IF NOT EXISTS cloty CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'cloty_user'@'localhost' IDENTIFIED BY 'Cloty_2026';
+GRANT ALL PRIVILEGES ON cloty.* TO 'cloty_user'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
+(Usuario BD: cloty_user | Contraseña: Cloty_2026)
+
+
+================================================================================
+  PARTE 4 — COMPILAR Y SUBIR EL JAR DESDE TU PC
+================================================================================
+
+En PowerShell de TU PC (no en el servidor):
+
+cd "C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api"
+
+.\mvnw.cmd clean package -DskipTests
+
+El JAR queda en:
+  target\cloty-api-0.0.1-SNAPSHOT.jar
+
+NOTA: El JAR ya NO incluye application-local.properties (credenciales locales).
+      En AWS la configuración va en cloty.env + perfil "aws".
+
+Súbelo al servidor (reemplaza IP y ruta .pem):
+
+scp -i "C:\Users\TU_USUARIO\.aws\cloty-ec2-key.pem" `
+  "target\cloty-api-0.0.1-SNAPSHOT.jar" `
+  ec2-user@54.123.45.67:/home/ec2-user/cloty-api.jar
+
+(Opcional) Sube también la plantilla de entorno y el servicio systemd:
+
+scp -i "C:\Users\TU_USUARIO\.aws\cloty-ec2-key.pem" `
+  "..\scripts\aws\cloty.env.example" `
+  ec2-user@54.123.45.67:/home/ec2-user/cloty.env.example
+
+
+================================================================================
+  PARTE 5 — CONFIGURAR VARIABLES (BD, JWT Y CORREO) EN EL SERVIDOR
+================================================================================
+
+Vuelve al SSH del servidor.
+
+1. Crear archivo cloty.env (reemplaza correo y contraseña de aplicación Gmail):
+
+cat > /home/ec2-user/cloty.env <<'EOF'
+SPRING_PROFILES_ACTIVE=aws
+
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/cloty?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
+SPRING_DATASOURCE_USERNAME=cloty_user
+SPRING_DATASOURCE_PASSWORD=Cloty_2026
+
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
+SERVER_ADDRESS=0.0.0.0
+SERVER_PORT=8080
+
+CLOTY_JWT_SECRET=ClotyAwsPruebaSecret_Min32CharsForHS256!!
+
+CLOTY_MAIL_ENABLED=true
+CLOTY_MAIL_FROM=TU_CORREO@gmail.com
+SPRING_MAIL_USERNAME=TU_CORREO@gmail.com
+SPRING_MAIL_PASSWORD="TU_CONTRASEÑA_DE_APLICACION_GMAIL"
+EOF
+
+IMPORTANTE:
+  - Cambia TU_CORREO@gmail.com por tu Gmail real (2 veces).
+  - Cambia TU_CONTRASEÑA_DE_APLICACION_GMAIL por la de 16 caracteres (Parte 0B).
+  - Mantén las comillas en SPRING_MAIL_PASSWORD si tiene espacios.
+  - Usuario/contraseña BD por defecto: cloty_user / Cloty_2026
+
+Plantilla de referencia en el repo:
+  scripts/aws/cloty.env.example
+
+2. Proteger el archivo (solo ec2-user puede leerlo):
+chmod 600 /home/ec2-user/cloty.env
+
+
+================================================================================
+  PARTE 6 — ARRANCAR LA API Y PROBAR
+================================================================================
+
+1. Probar arranque manual:
+
+cd /home/ec2-user
+set -a && source cloty.env && set +a
+java -jar cloty-api.jar
+
+Deberías ver "Started ClotyApiApplication" sin errores.
+En los logs NO debe aparecer error de JavaMailSender al iniciar.
+
+2. Prueba login desde tu PC (otra ventana PowerShell):
+
+curl -X POST http://54.123.45.67:8080/api/auth/login `
+  -H "Content-Type: application/json" `
+  -d '{"identificador":"superadmin","password":"super123"}'
+
+Si responde JSON con "token", la API está en internet.
+
+3. Detén la prueba manual con Ctrl+C en el SSH.
+
+4. Dejar la API en segundo plano:
+
+nohup bash -c 'set -a && source /home/ec2-user/cloty.env && set +a && java -jar /home/ec2-user/cloty-api.jar' > /home/ec2-user/cloty-api.log 2>&1 &
+
+Ver logs en vivo:
+  tail -f /home/ec2-user/cloty-api.log
+
+
+================================================================================
+  PARTE 6B — PROBAR QUE LOS CORREOS SE ENVÍAN
+================================================================================
+
+Con la API corriendo y CLOTY_MAIL_ENABLED=true:
+
+Prueba A — Recuperación de contraseña (desde app administrador o curl):
+
+curl -X POST http://54.123.45.67:8080/api/auth/solicitar-recuperacion-contrasena `
+  -H "Content-Type: application/json" `
+  -d '{"identificador":"superadmin"}'
+
+Debe responder éxito y llegar un correo al email del superadmin
+(por defecto superadmin@cloty.local si no cambiaste el perfil; mejor crear
+un administrador de prueba con TU correo real).
+
+Prueba B — Crear administrador (requiere token de superadmin):
+
+  a) Obtén token con login superadmin.
+  b) Desde la app Cloty Administrador (conectada a AWS): crea un administrador
+     con un email tuyo real.
+  c) Debe llegar correo "Cuenta de administrador creada" con usuario y contraseña.
+
+Prueba C — Activación apoderado/colegio:
+  - Registra un colegio o apoderado con email real desde la app administrador.
+  - Al vincular / activar, debe llegar código de 6 dígitos por correo.
+
+En los logs del servidor, si el envío fue bien verás:
+  Correo enviado a xxx@...
+
+Si falla verás:
+  Error al enviar correo a xxx@...: (motivo)
+
+
+================================================================================
+  PARTE 6C — (OPCIONAL) SERVICIO SYSTEMD — REINICIO AUTOMÁTICO
+================================================================================
+
+Para que la API arranque sola al reiniciar la EC2:
+
+1. Sube el archivo de servicio (desde tu PC):
+
+scp -i "C:\Users\TU_USUARIO\.aws\cloty-ec2-key.pem" `
+  "C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\scripts\aws\cloty-api.service" `
+  ec2-user@54.123.45.67:/home/ec2-user/cloty-api.service
+
+2. En el SSH del servidor:
+
+sudo cp /home/ec2-user/cloty-api.service /etc/systemd/system/cloty-api.service
+sudo systemctl daemon-reload
+sudo systemctl enable cloty-api
+sudo systemctl start cloty-api
+sudo systemctl status cloty-api
+
+Comandos útiles:
+  sudo systemctl restart cloty-api
+  sudo systemctl stop cloty-api
+  tail -f /home/ec2-user/cloty-api.log
+
+
+================================================================================
+  PARTE 7 — CONFIGURAR LAS APPS ANDROID
+================================================================================
+
+Las apps leen la URL desde local.properties en la raíz del proyecto Cloty.
+
+1. Edita el archivo:
+   C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\local.properties
+
+2. Pon la IP pública de tu EC2 (sin https, puerto 8080):
+
+   cloty.api.host=54.123.45.67
+   cloty.api.port=8080
+
+   (Reemplaza 54.123.45.67 por tu IP real.)
+
+3. Recompila e instala cada app que uses:
+
+   cd clotyadministrador
+   .\gradlew.bat installDebug
+
+   cd ..\cloty_apoderado
+   .\gradlew.bat installDebug
+
+   cd ..\cloty_colegio
+   .\gradlew.bat installDebug
+
+4. En el celular:
+   - Ya NO necesitas adb reverse
+   - Usa datos móviles o Wi-Fi cualquiera
+   - Inicia sesión: superadmin / super123
+
+NOTA: usesCleartextTraffic=true en las apps permite HTTP (solo prueba).
+
+
+================================================================================
+  PARTE 8 — QUÉ CORREOS ENVÍA EL PROYECTO (CON MAIL ACTIVADO)
+================================================================================
+
+  Función                              | Cuándo se envía
+  -------------------------------------|----------------------------------
+  Bienvenida administrador             | Al crear admin (app super usuario)
+  Bienvenida super usuario             | Al crear super usuario
+  Código activación apoderado          | Al solicitar activación en app apoderado
+  Código activación colegio            | Al solicitar activación en app colegio
+  Instructivo activación colegio       | Al registrar un colegio nuevo
+  Instructivo activación apoderado     | Al vincular apoderado a colegio
+  Recuperación de contraseña           | "¿Olvidó su contraseña?" en apps
+  Notificaciones a apoderado           | Si el colegio envía notificaciones
+
+Todo depende de:
+  - CLOTY_MAIL_ENABLED=true en cloty.env
+  - SPRING_PROFILES_ACTIVE=aws
+  - Gmail SMTP bien configurado
+  - El registro tenga un email válido en la base de datos
+
+
+================================================================================
+  PARTE 9 — VERIFICACIÓN RÁPIDA (CHECKLIST)
+================================================================================
+
+[ ] EC2 en estado "running"
+[ ] Security Group permite TCP 8080 desde 0.0.0.0/0
+[ ] MariaDB activo: sudo systemctl status mariadb
+[ ] cloty.env tiene SPRING_PROFILES_ACTIVE=aws
+[ ] cloty.env tiene CLOTY_MAIL_ENABLED=true y Gmail configurado
+[ ] curl login devuelve token desde tu PC
+[ ] Prueba de correo (recuperación o crear admin) llega a bandeja/spam
+[ ] Log muestra "Correo enviado a ..."
+[ ] local.properties apunta a la IP pública
+[ ] Apps recompiladas después de cambiar local.properties
+
+
+================================================================================
+  PARTE 10 — PROBLEMAS FRECUENTES
+================================================================================
+
+"No se puede conectar" desde el celular:
+  - Security Group sin puerto 8080 abierto
+  - API no está corriendo (revisa cloty-api.log o systemctl status cloty-api)
+  - IP incorrecta en local.properties
+  - Olvidaste recompilar la app tras cambiar local.properties
+
+Error de MySQL al arrancar:
+  - MariaDB parado: sudo systemctl start mariadb
+  - Usuario/clave incorrectos en cloty.env
+
+401 / autenticación en la app:
+  - API vieja; sube JAR nuevo y reinicia
+  - Token expirado: cierra sesión y vuelve a entrar
+
+Los correos NO llegan:
+  - CLOTY_MAIL_ENABLED=false o falta SPRING_PROFILES_ACTIVE=aws
+  - Contraseña de aplicación Gmail incorrecta (no uses la clave normal)
+  - Falta verificación en 2 pasos en Google
+  - Revisa spam / correo no deseado
+  - Revisa log: tail -f /home/ec2-user/cloty-api.log
+  - Gmail puede bloquear algunos envíos desde IP de AWS; reintenta o usa otro Gmail
+  - El destinatario no tiene email en BD (ej. superadmin@cloty.local no es buzón real)
+
+Error al enviar correo "Authentication failed":
+  - SPRING_MAIL_USERNAME debe ser el Gmail completo
+  - SPRING_MAIL_PASSWORD debe ser contraseña de aplicación entre comillas
+
+La IP cambió al reiniciar:
+  - Asigna Elastic IP, actualiza local.properties y recompila apps
+
+
+================================================================================
+  PARTE 11 — COSTOS Y APAGAR TODO
+================================================================================
+
+Free tier (12 meses aprox., según región):
+  - t2.micro/t3.micro: horas limitadas gratis
+  - Tráfico de salida: cierto volumen gratis
+
+Para NO gastar de más:
+  EC2 → Instancias → Seleccionar → Estado → Detener instancia
+  (Detener, NO terminar, si quieres conservar el disco y datos.)
+
+Terminar instancia = borrar el servidor.
+
+
+================================================================================
+  PARTE 12 — USUARIO INICIAL
+================================================================================
+
+Al arrancar con base vacía, la API crea automáticamente:
+  Usuario: superadmin
+  Contraseña: super123
+  RUT: 00000000-0
+  Email perfil: superadmin@cloty.local (no es un buzón real)
+
+Para probar correos de recuperación, crea un administrador con TU email real
+desde la app, o edita el super usuario y pon un Gmail tuyo.
+
+
+================================================================================
+  RESUMEN — ¿DOCKER?
+================================================================================
+
+NO es necesario Docker para esta prueba.
+Este instructivo usa: EC2 + JAR + MariaDB + Gmail = mínimos pasos.
+
+Cuando pases a producción real, considera:
+  - HTTPS (certificado + dominio)
+  - Amazon SES en lugar de Gmail
+  - RDS en lugar de BD en la misma máquina
+  - Secretos en AWS Parameter Store
+  - ddl-auto=validate + migraciones SQL
+
+
+================================================================================
+  COMANDOS ÚTILES (COPIAR/PEGAR)
+================================================================================
+
+--- Reiniciar API (modo nohup) ---
+pkill -f cloty-api.jar
+nohup bash -c 'set -a && source /home/ec2-user/cloty.env && set +a && java -jar /home/ec2-user/cloty-api.jar' > /home/ec2-user/cloty-api.log 2>&1 &
+
+--- Reiniciar API (modo systemd) ---
+sudo systemctl restart cloty-api
+
+--- Ver logs ---
+tail -f /home/ec2-user/cloty-api.log
+
+--- Actualizar JAR (después de cambios en el código) ---
+(En PC) cd cloty-api
+(En PC) .\mvnw.cmd clean package -DskipTests
+(En PC) scp -i "...\cloty-ec2-key.pem" target\cloty-api-0.0.1-SNAPSHOT.jar ec2-user@IP:/home/ec2-user/cloty-api.jar
+(En servidor) reiniciar API (comando de arriba)
+
+
+================================================================================
+  ARCHIVOS DEL PROYECTO RELACIONADOS
+================================================================================
+
+  cloty-api/src/main/resources/application-aws.properties  → perfil AWS (SMTP)
+  cloty-api/src/main/resources/application-local.properties.example → plantilla local
+  scripts/aws/cloty.env.example                            → plantilla variables EC2
+  scripts/aws/cloty-api.service                            → servicio systemd
+  local.properties                                         → IP/puerto apps Android
+  INSTRUCTIVO-AWS-PRUEBA.txt                               → este archivo
+
+Desarrollo local (tu PC):
+  - Copia application-local.properties.example → application-local.properties
+  - Completa Gmail ahí (ese archivo NO se empaqueta en el JAR)
+  - Corre la API con mvnw spring-boot:run (mail enabled en local)
+
+Fin del instructivo.

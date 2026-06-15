@@ -1,4 +1,4 @@
-package com.example.cloty_apoderado.ui
+﻿package com.example.cloty_apoderado.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -47,7 +47,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _notificaciones = MutableStateFlow<List<Notificacion>>(emptyList())
     val notificaciones: StateFlow<List<Notificacion>> = _notificaciones.asStateFlow()
 
-    // esta parte es nueva
     private val _apoderado = MutableStateFlow<Apoderado?>(null)
     val apoderado: StateFlow<Apoderado?> = _apoderado.asStateFlow()
 
@@ -81,14 +80,14 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun restablecerContrasena(rut: String, codigo: String, password: String, onExito: () -> Unit) = launchTask {
         repo.restablecerContrasena(rut, codigo, password)
-        _message.value = "Contraseña actualizada. Ya puede iniciar sesión."
+        _message.value = "ContraseÃ±a actualizada. Ya puede iniciar sesiÃ³n."
         onExito()
     }
 
     fun solicitarCodigoActivacion(rut: String, onExito: () -> Unit) = launchTask {
         val resp = repo.solicitarCodigoActivacion(rut)
         _correoActivacion.value = resp.correoEnmascarado
-        _message.value = resp.mensaje ?: "Código enviado al correo registrado"
+        _message.value = resp.mensaje ?: "CÃ³digo enviado al correo registrado"
         onExito()
     }
 
@@ -115,7 +114,6 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _apoderado.value = null
     }
 
-    // esta parte es nueva
     private fun startNotificationPolling() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -140,13 +138,11 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         val me = repo.me()
         idApoderado = me.idApoderado
         _nombreUsuario.value = me.username
-        // esta parte es nueva
         me.idApoderado?.let { id ->
             _apoderado.value = repo.obtenerApoderado(id)
         }
     }
 
-    // esta parte es nueva
     fun actualizarMisDatos(email: String, telefono: String, direccion: String) = launchTask {
         val perfil = _apoderado.value ?: throw IllegalStateException("Perfil no cargado")
         val id = idApoderado ?: perfil.idApoderado
@@ -179,7 +175,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun cambiarContrasena(actual: String, nueva: String) = launchTask {
         repo.cambiarContrasena(actual, nueva)
-        _message.value = "Contraseña actualizada correctamente"
+        _message.value = "ContraseÃ±a actualizada correctamente"
     }
 
     fun clearMessages() {

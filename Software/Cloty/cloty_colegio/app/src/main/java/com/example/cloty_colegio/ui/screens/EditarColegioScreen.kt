@@ -1,6 +1,5 @@
-package com.example.cloty_colegio.ui.screens
+﻿package com.example.cloty_colegio.ui.screens
 
-// esta parte es nueva
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -53,7 +52,6 @@ fun EditarColegioScreen(
     var email by rememberSaveable { mutableStateOf("") }
     var telefono by rememberSaveable { mutableStateOf("") }
     var direccion by rememberSaveable { mutableStateOf("") }
-    // esto es nuevo
     var showValidation by rememberSaveable { mutableStateOf(false) }
 
     fun errorValidacion() = ChileValidators.primerMensajeError(
@@ -94,12 +92,10 @@ fun EditarColegioScreen(
             MessageBanner(error, true)
             MessageBanner(message, false)
             OutlinedTextField(rut, {}, label = { Text("RUT") }, readOnly = true, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            // esto es nuevo
             OutlinedTextField(nombre, { nombre = it; showValidation = false }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             EmailTextField(email, { email = it; showValidation = false }, label = "Correo", obligatorio = true, showValidation = showValidation)
             TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
-            OutlinedTextField(direccion, { direccion = it }, label = { Text("Dirección") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            // esto es nuevo
+            OutlinedTextField(direccion, { direccion = it }, label = { Text("DirecciÃ³n") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             ValidationMessageBanner(if (showValidation) errorValidacion() else null)
             Button(
                 onClick = {

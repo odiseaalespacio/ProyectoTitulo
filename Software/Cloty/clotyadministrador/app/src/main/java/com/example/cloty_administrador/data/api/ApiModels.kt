@@ -1,4 +1,4 @@
-package com.example.cloty_administrador.data.api
+﻿package com.example.cloty_administrador.data.api
 
 data class LoginRequest(val identificador: String, val password: String)
 
@@ -44,6 +44,16 @@ data class AdministradorCompletoRequest(
     val telefono: String?
 )
 
+data class SuperUsuarioCompletoRequest(
+    val username: String,
+    val password: String,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String,
+    val telefono: String?
+)
+
 data class ColegioRequest(
     val idUsuario: Int? = null,
     val rut: String,
@@ -53,7 +63,6 @@ data class ColegioRequest(
     val direccion: String? = null
 )
 
-// esta parte es nueva
 data class ApoderadoRequest(
     val idUsuario: Int? = null,
     val rut: String,
@@ -64,7 +73,6 @@ data class ApoderadoRequest(
     val direccion: String? = null
 )
 
-// esta parte es nueva
 data class AlumnoRequest(
     val idColegio: Int,
     val idApoderado: Int,
@@ -75,20 +83,17 @@ data class AlumnoRequest(
     val estado: Boolean? = true
 )
 
-// esta parte es nueva
 data class ColegioApoderadoRequest(
     val idColegio: Int,
     val idApoderado: Int
 )
 
-// esta parte es nueva
 data class ColegioApoderado(
     val idColegioApoderado: Int,
     val idColegio: Int,
     val idApoderado: Int
 )
 
-// esta parte es nueva
 data class Apoderado(
     val idApoderado: Int,
     val idUsuario: Int?,
@@ -125,6 +130,16 @@ data class CargaMasivaResult(
 
 data class Administrador(
     val idAdministrador: Int,
+    val idUsuario: Int,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String,
+    val telefono: String?
+)
+
+data class SuperUsuario(
+    val idSuperUsuario: Int,
     val idUsuario: Int,
     val rut: String,
     val nombres: String,
@@ -189,6 +204,15 @@ data class UsuarioUpdateRequest(
 )
 
 data class AdministradorRequest(
+    val idUsuario: Int,
+    val rut: String,
+    val nombres: String,
+    val apellidos: String,
+    val email: String,
+    val telefono: String? = null
+)
+
+data class SuperUsuarioRequest(
     val idUsuario: Int,
     val rut: String,
     val nombres: String,

@@ -1,6 +1,5 @@
-package com.example.cloty_colegio.ui.screens
+﻿package com.example.cloty_colegio.ui.screens
 
-// esta parte es nueva
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -127,7 +126,6 @@ fun GestionPersonasScreen(
                         ListItem(
                             headlineContent = { Text("${a.nombres} ${a.apellidos}") },
                             supportingContent = { Text("RUT ${a.rut}") },
-                            // esta parte es nueva
                             trailingContent = {
                                 Row {
                                     IconButton(onClick = {
@@ -153,7 +151,7 @@ fun GestionPersonasScreen(
                         val cursoNombre = cursos.find { it.idCurso == al.idCurso }?.nombre ?: "Curso ${al.idCurso}"
                         ListItem(
                             headlineContent = { Text("${al.nombres} ${al.apellidos}") },
-                            supportingContent = { Text("RUT ${al.rut} · $cursoNombre") },
+                            supportingContent = { Text("RUT ${al.rut} Â· $cursoNombre") },
                             trailingContent = {
                                 Row {
                                     IconButton(onClick = {
@@ -216,7 +214,7 @@ fun GestionPersonasScreen(
         AlertDialog(
             onDismissRequest = { confirmDeleteApoderado = null },
             title = { Text("Eliminar apoderado") },
-            text = { Text("¿Eliminar a ${a.nombres} ${a.apellidos}? No se puede deshacer.") },
+            text = { Text("Â¿Eliminar a ${a.nombres} ${a.apellidos}? No se puede deshacer.") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarApoderado(a.idApoderado)
@@ -231,7 +229,7 @@ fun GestionPersonasScreen(
         AlertDialog(
             onDismissRequest = { confirmDeleteAlumno = null },
             title = { Text("Eliminar alumno") },
-            text = { Text("¿Eliminar a ${al.nombres} ${al.apellidos}?") },
+            text = { Text("Â¿Eliminar a ${al.nombres} ${al.apellidos}?") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarAlumno(al.idAlumno)
@@ -256,7 +254,6 @@ private fun ApoderadoFormDialog(
     var email by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.email ?: "") }
     var telefono by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.telefono ?: "") }
     var direccion by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.direccion ?: "") }
-    // esto es nuevo
     var showValidation by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(false) }
 
     fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
@@ -272,13 +269,12 @@ private fun ApoderadoFormDialog(
         title = { Text(if (apoderado == null) "Nuevo apoderado" else "Editar apoderado") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // esto es nuevo
                 RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                 OutlinedTextField(nombres, { nombres = it; showValidation = false }, label = { Text("Nombres") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(apellidos, { apellidos = it; showValidation = false }, label = { Text("Apellidos") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 EmailTextField(email, { email = it; showValidation = false }, obligatorio = true, showValidation = showValidation)
                 TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
-                OutlinedTextField(direccion, { direccion = it }, label = { Text("Dirección") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(direccion, { direccion = it }, label = { Text("DirecciÃ³n") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 ValidationMessageBanner(if (showValidation) errorValidacion(true) else null)
             }
         },
@@ -326,7 +322,6 @@ private fun AlumnoFormDialog(
     var idCurso by rememberSaveable(alumno?.idAlumno) { mutableIntStateOf(alumno?.idCurso ?: 0) }
     var apoderadoExpanded by rememberSaveable { mutableStateOf(false) }
     var cursoExpanded by rememberSaveable { mutableStateOf(false) }
-    // esto es nuevo
     var showValidation by rememberSaveable(alumno?.idAlumno) { mutableStateOf(false) }
 
     AlertDialog(
@@ -334,7 +329,6 @@ private fun AlumnoFormDialog(
         title = { Text(if (alumno == null) "Nuevo alumno" else "Editar alumno") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // esto es nuevo
                 RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                 OutlinedTextField(nombres, { nombres = it; showValidation = false }, label = { Text("Nombres") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(apellidos, { apellidos = it; showValidation = false }, label = { Text("Apellidos") }, singleLine = true, modifier = Modifier.fillMaxWidth())

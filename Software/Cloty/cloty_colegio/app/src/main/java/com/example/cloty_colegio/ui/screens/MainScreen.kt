@@ -1,4 +1,4 @@
-package com.example.cloty_colegio.ui.screens
+﻿package com.example.cloty_colegio.ui.screens
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -32,7 +32,6 @@ fun MainScreen(
     onLogout: () -> Unit
 ) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
-    // esta parte es nueva
     var gestionScreen by rememberSaveable { mutableStateOf<String?>(null) }
     val nombreColegio by viewModel.nombreColegio.collectAsState()
     val ultimoUid by viewModel.ultimoUidNfc.collectAsState()
@@ -57,7 +56,6 @@ fun MainScreen(
         }
     }
 
-    // esta parte es nueva
     when (gestionScreen) {
         "personas" -> GestionPersonasScreen(viewModel, PaddingValues()) { gestionScreen = null }
         "cursos" -> GestionCursosScreen(viewModel, PaddingValues()) { gestionScreen = null }
@@ -84,7 +82,7 @@ fun MainScreen(
                         selected = tab == 2,
                         onClick = { tab = 2; gestionScreen = null },
                         icon = { Icon(Icons.Default.ManageAccounts, null) },
-                        label = { Text("Gestión") }
+                        label = { Text("GestiÃ³n") }
                     )
                     NavigationBarItem(
                         selected = tab == 3,

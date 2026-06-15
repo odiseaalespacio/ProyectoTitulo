@@ -1,6 +1,5 @@
-package com.example.cloty_colegio.ui.screens
+﻿package com.example.cloty_colegio.ui.screens
 
-// esta parte es nueva
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,7 +33,7 @@ fun GestionMenuScreen(
         Modifier.fillMaxSize().padding(contentPadding).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Gestión", style = MaterialTheme.typography.titleLarge)
+        Text("GestiÃ³n", style = MaterialTheme.typography.titleLarge)
         Text(
             "Administre apoderados, alumnos, cursos y datos del establecimiento.",
             style = MaterialTheme.typography.bodyMedium

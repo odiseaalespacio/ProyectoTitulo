@@ -49,9 +49,6 @@ public class UsuarioService {
 	@Transactional
 	public Usuario crear(UsuarioCreateRequest req) {
 		validarAsignacionRolPrivilegiado(req.rol(), null);
-		if (req.rol() == RolUsuario.SUPER_USUARIO && (req.email() == null || req.email().isBlank())) {
-			throw new BadRequestException("El correo es obligatorio para super usuarios");
-		}
 		if (usuarioRepository.existsByUsername(req.username().trim())) {
 			throw new ConflictException("El nombre de usuario ya existe");
 		}
@@ -66,12 +63,7 @@ public class UsuarioService {
 				.rol(req.rol())
 				.estado(req.estado() != null ? req.estado() : Boolean.TRUE)
 				.build();
-		u = usuarioRepository.save(u);
-		if (req.rol() == RolUsuario.SUPER_USUARIO && req.email() != null && !req.email().isBlank()) {
-			emailService.enviarBienvenidaSuperUsuario(
-					req.email().trim(), u.getUsername(), u.getRut(), req.password());
-		}
-		return u;
+		return usuarioRepository.save(u);
 	}
 
 	@Transactional
@@ -103,6 +95,9 @@ public class UsuarioService {
 			u.setRol(req.rol());
 		}
 		if (req.estado() != null) {
+			if (Boolean.FALSE.equals(req.estado()) && u.getRol() == RolUsuario.SUPER_USUARIO) {
+				throw new BadRequestException("No se puede desactivar un super usuario");
+			}
 			u.setEstado(req.estado());
 		}
 		return usuarioRepository.save(u);

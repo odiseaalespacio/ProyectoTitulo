@@ -1,4 +1,4 @@
-package com.cloty.web;
+﻿package com.cloty.web;
 
 import com.cloty.domain.Colegio;
 import com.cloty.dto.ColegioRequest;
@@ -45,7 +45,6 @@ public class ColegioController {
 		return colegioService.crear(body);
 	}
 
-	// esta parte es nueva
 	@PutMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.ownsColegio(#id))")
 	public Colegio actualizar(@PathVariable Integer id, @Valid @RequestBody ColegioRequest body) {

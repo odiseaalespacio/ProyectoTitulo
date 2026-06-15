@@ -1,6 +1,5 @@
-package com.example.cloty_apoderado.notification
+﻿package com.example.cloty_apoderado.notification
 
-// esta parte es nueva
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

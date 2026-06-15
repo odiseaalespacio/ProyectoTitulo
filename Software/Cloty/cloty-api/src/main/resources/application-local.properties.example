@@ -1,4 +1,3 @@
-# Copie este archivo como application-local.properties y complete sus datos Gmail.
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
 spring.mail.username=su_correo@gmail.com

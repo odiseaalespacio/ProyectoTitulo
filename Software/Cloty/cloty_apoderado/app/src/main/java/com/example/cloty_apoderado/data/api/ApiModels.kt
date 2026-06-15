@@ -1,4 +1,4 @@
-package com.example.cloty_apoderado.data.api
+﻿package com.example.cloty_apoderado.data.api
 
 data class LoginRequest(val identificador: String, val password: String)
 
@@ -17,7 +17,6 @@ data class CambiarContrasenaRequest(
     val contrasenaNueva: String
 )
 
-// esta parte es nueva
 data class ApoderadoRequest(
     val idUsuario: Int? = null,
     val rut: String,

@@ -1,4 +1,4 @@
-package com.cloty.web;
+﻿package com.cloty.web;
 
 import com.cloty.domain.Curso;
 import com.cloty.dto.CursoRequest;
@@ -38,7 +38,6 @@ public class CursoController {
 		return cursoService.obtener(id);
 	}
 
-	// esta parte es nueva
 	@PostMapping
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoRequest(#body))")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -46,14 +45,12 @@ public class CursoController {
 		return cursoService.crear(body);
 	}
 
-	// esta parte es nueva
 	@PutMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoId(#id) and @authz.colegioPuedeGestionarCursoRequest(#body))")
 	public Curso actualizar(@PathVariable Integer id, @Valid @RequestBody CursoRequest body) {
 		return cursoService.actualizar(id, body);
 	}
 
-	// esta parte es nueva
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.colegioPuedeGestionarCursoId(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)

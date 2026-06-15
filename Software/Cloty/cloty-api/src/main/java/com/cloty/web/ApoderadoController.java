@@ -1,4 +1,4 @@
-package com.cloty.web;
+﻿package com.cloty.web;
 
 import com.cloty.domain.Apoderado;
 import com.cloty.dto.ApoderadoRequest;
@@ -32,21 +32,18 @@ public class ApoderadoController {
 		return apoderadoService.listar();
 	}
 
-	// esta parte es nueva
 	@GetMapping("/colegio/{idColegio}")
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.ownsColegio(#idColegio))")
 	public List<Apoderado> listarPorColegio(@PathVariable Integer idColegio) {
 		return apoderadoService.listarPorColegio(idColegio);
 	}
 
-	// esta parte es nueva
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.ownsApoderado(#id) or (hasRole('COLEGIO') and @authz.apoderadoAsociadoAMiColegio(#id))")
 	public Apoderado obtener(@PathVariable Integer id) {
 		return apoderadoService.obtener(id);
 	}
 
-	// esta parte es nueva
 	@PostMapping
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or hasRole('COLEGIO')")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -54,14 +51,12 @@ public class ApoderadoController {
 		return apoderadoService.crear(body);
 	}
 
-	// esta parte es nueva
 	@PutMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or @authz.ownsApoderado(#id) or (hasRole('COLEGIO') and @authz.apoderadoAsociadoAMiColegio(#id))")
 	public Apoderado actualizar(@PathVariable Integer id, @Valid @RequestBody ApoderadoRequest body) {
 		return apoderadoService.actualizar(id, body);
 	}
 
-	// esta parte es nueva
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPER_USUARIO') or (hasRole('COLEGIO') and @authz.apoderadoAsociadoAMiColegio(#id))")
 	@ResponseStatus(HttpStatus.NO_CONTENT)

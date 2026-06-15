@@ -1,21 +1,17 @@
-package com.cloty.validation;
-
+﻿package com.cloty.validation;
 
 
 import java.util.regex.Pattern;
 
 
-
 /**
 
- * Validaciones de formato chileno (RUT, teléfono, correo).
+ * Validaciones de formato chileno (RUT, telÃ©fono, correo).
 
  */
 
-// esto es nuevo
 
 public final class ChileValidacion {
-
 
 
 	private static final Pattern EMAIL = Pattern.compile(
@@ -23,11 +19,9 @@ public final class ChileValidacion {
 			"^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
 
-
 	private ChileValidacion() {
 
 	}
-
 
 
 	public static String normalizarRut(String rut) {
@@ -43,13 +37,11 @@ public final class ChileValidacion {
 	}
 
 
-
 	public static boolean esRutValido(String rut) {
 
 		return parsearRut(rut) != null;
 
 	}
-
 
 
 	public static String formatearRutConGuion(String rut) {
@@ -75,7 +67,6 @@ public final class ChileValidacion {
 	}
 
 
-
 	public static boolean esEmailValido(String email) {
 
 		if (email == null || email.isBlank()) {
@@ -87,7 +78,6 @@ public final class ChileValidacion {
 		return EMAIL.matcher(email.trim()).matches();
 
 	}
-
 
 
 	public static boolean esTelefonoChilenoValido(String telefono) {
@@ -121,7 +111,6 @@ public final class ChileValidacion {
 		return false;
 
 	}
-
 
 
 	private static RutPartes parsearRut(String rut) {
@@ -169,7 +158,6 @@ public final class ChileValidacion {
 	}
 
 
-
 	private static char calcularDigitoVerificador(String cuerpo) {
 
 		int suma = 0;
@@ -197,7 +185,6 @@ public final class ChileValidacion {
 		};
 
 	}
-
 
 
 	private record RutPartes(String cuerpo, char dv) {

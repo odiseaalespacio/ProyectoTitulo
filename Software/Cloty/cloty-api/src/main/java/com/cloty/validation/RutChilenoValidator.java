@@ -1,9 +1,8 @@
-package com.cloty.validation;
+﻿package com.cloty.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-// esto es nuevo
 public class RutChilenoValidator implements ConstraintValidator<RutChileno, String> {
 
 	@Override

@@ -1,4 +1,4 @@
-package com.cloty.validation;
+﻿package com.cloty.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -9,14 +9,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-// esto es nuevo
 @Documented
 @Constraint(validatedBy = RutChilenoValidator.class)
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RutChileno {
 
-	String message() default "RUT chileno inválido (ej: 12.345.678-9)";
+	String message() default "RUT chileno invÃ¡lido (ej: 12.345.678-9)";
 
 	Class<?>[] groups() default {};
 

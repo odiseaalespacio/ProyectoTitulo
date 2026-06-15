@@ -1,4 +1,4 @@
-package com.example.cloty_administrador.ui.screens
+﻿package com.example.cloty_administrador.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -53,7 +54,6 @@ import com.example.cloty_administrador.ui.components.TelefonoChilenoTextField
 import com.example.cloty_administrador.ui.components.ValidationMessageBanner
 import com.example.cloty_administrador.util.ChileValidators
 
-// esta parte es nueva
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
@@ -68,10 +68,10 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var showApoderadoDialog by rememberSaveable { mutableStateOf(false) }
     var showAlumnoDialog by rememberSaveable { mutableStateOf(false) }
-    var editApoderado by rememberSaveable { mutableStateOf<Apoderado?>(null) }
-    var editAlumno by rememberSaveable { mutableStateOf<Alumno?>(null) }
-    var confirmDeleteApoderado by rememberSaveable { mutableStateOf<Apoderado?>(null) }
-    var confirmDeleteAlumno by rememberSaveable { mutableStateOf<Alumno?>(null) }
+    var editApoderado by remember { mutableStateOf<Apoderado?>(null) }
+    var editAlumno by remember { mutableStateOf<Alumno?>(null) }
+    var confirmDeleteApoderado by remember { mutableStateOf<Apoderado?>(null) }
+    var confirmDeleteAlumno by remember { mutableStateOf<Alumno?>(null) }
 
     LaunchedEffect(Unit) { viewModel.cargarColegios() }
     LaunchedEffect(idColegio) {
@@ -156,7 +156,7 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                         val cursoNombre = cursos.find { it.idCurso == al.idCurso }?.nombre ?: "Curso ${al.idCurso}"
                         ListItem(
                             headlineContent = { Text("${al.nombres} ${al.apellidos}") },
-                            supportingContent = { Text("RUT ${al.rut} · $cursoNombre") },
+                            supportingContent = { Text("RUT ${al.rut} Â· $cursoNombre") },
                             trailingContent = {
                                 Row {
                                     IconButton(onClick = {
@@ -218,7 +218,7 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { confirmDeleteApoderado = null },
             title = { Text("Eliminar apoderado") },
-            text = { Text("¿Eliminar a ${a.nombres} ${a.apellidos}? No se puede deshacer.") },
+            text = { Text("Â¿Eliminar a ${a.nombres} ${a.apellidos}? No se puede deshacer.") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarApoderado(a.idApoderado, idColegio)
@@ -233,7 +233,7 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { confirmDeleteAlumno = null },
             title = { Text("Eliminar alumno") },
-            text = { Text("¿Eliminar a ${al.nombres} ${al.apellidos}?") },
+            text = { Text("Â¿Eliminar a ${al.nombres} ${al.apellidos}?") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarAlumno(al.idAlumno, idColegio)
@@ -245,7 +245,6 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     }
 }
 
-// esta parte es nueva
 @Composable
 private fun ApoderadoFormDialog(
     apoderado: Apoderado?,
@@ -259,7 +258,6 @@ private fun ApoderadoFormDialog(
     var email by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.email ?: "") }
     var telefono by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.telefono ?: "") }
     var direccion by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.direccion ?: "") }
-    // esto es nuevo
     var showValidation by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(false) }
 
     fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
@@ -275,14 +273,12 @@ private fun ApoderadoFormDialog(
         title = { Text(if (apoderado == null) "Nuevo apoderado" else "Editar apoderado") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // esto es nuevo
                 RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                 OutlinedTextField(nombres, { nombres = it; showValidation = false }, label = { Text("Nombres") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(apellidos, { apellidos = it; showValidation = false }, label = { Text("Apellidos") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 EmailTextField(email, { email = it; showValidation = false }, obligatorio = true, showValidation = showValidation)
                 TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
-                OutlinedTextField(direccion, { direccion = it }, label = { Text("Dirección") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                // esto es nuevo
+                OutlinedTextField(direccion, { direccion = it }, label = { Text("DirecciÃ³n") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 ValidationMessageBanner(if (showValidation) errorValidacion(true) else null)
             }
         },
@@ -312,7 +308,6 @@ private fun ApoderadoFormDialog(
     )
 }
 
-// esta parte es nueva
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AlumnoFormDialog(
@@ -331,7 +326,6 @@ private fun AlumnoFormDialog(
     var idCurso by rememberSaveable(alumno?.idAlumno) { mutableIntStateOf(alumno?.idCurso ?: 0) }
     var apoderadoExpanded by rememberSaveable { mutableStateOf(false) }
     var cursoExpanded by rememberSaveable { mutableStateOf(false) }
-    // esto es nuevo
     var showValidation by rememberSaveable(alumno?.idAlumno) { mutableStateOf(false) }
 
     AlertDialog(
@@ -339,7 +333,6 @@ private fun AlumnoFormDialog(
         title = { Text(if (alumno == null) "Nuevo alumno" else "Editar alumno") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // esto es nuevo
                 RutTextField(rut, { rut = it; showValidation = false }, showValidation = showValidation)
                 OutlinedTextField(nombres, { nombres = it; showValidation = false }, label = { Text("Nombres") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(apellidos, { apellidos = it; showValidation = false }, label = { Text("Apellidos") }, singleLine = true, modifier = Modifier.fillMaxWidth())
@@ -387,7 +380,6 @@ private fun AlumnoFormDialog(
                         }
                     }
                 }
-                // esto es nuevo
                 ValidationMessageBanner(
                     if (showValidation) {
                         ChileValidators.primerMensajeError(

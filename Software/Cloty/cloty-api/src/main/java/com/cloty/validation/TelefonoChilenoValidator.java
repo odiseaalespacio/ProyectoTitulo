@@ -1,9 +1,8 @@
-package com.cloty.validation;
+﻿package com.cloty.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-// esto es nuevo
 public class TelefonoChilenoValidator implements ConstraintValidator<TelefonoChileno, String> {
 
 	@Override

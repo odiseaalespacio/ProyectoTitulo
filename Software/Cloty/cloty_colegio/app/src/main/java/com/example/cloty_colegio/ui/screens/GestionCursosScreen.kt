@@ -1,6 +1,5 @@
-package com.example.cloty_colegio.ui.screens
+﻿package com.example.cloty_colegio.ui.screens
 
-// esta parte es nueva
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -101,11 +100,10 @@ fun GestionCursosScreen(
                             Text(
                                 buildString {
                                     append(curso.nivel ?: curso.nombre)
-                                    append(" · ID ${curso.idCurso}")
+                                    append(" Â· ID ${curso.idCurso}")
                                 }
                             )
                         },
-                        // esta parte es nueva
                         trailingContent = {
                             Row {
                                 IconButton(onClick = {
@@ -148,7 +146,7 @@ fun GestionCursosScreen(
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
             title = { Text("Eliminar curso") },
-            text = { Text("¿Eliminar el curso ${c.nombre}? Solo es posible si no tiene alumnos vinculados.") },
+            text = { Text("Â¿Eliminar el curso ${c.nombre}? Solo es posible si no tiene alumnos vinculados.") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarCurso(c.idCurso)
