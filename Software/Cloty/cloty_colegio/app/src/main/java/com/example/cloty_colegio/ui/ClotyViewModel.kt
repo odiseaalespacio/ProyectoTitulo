@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cloty_colegio.data.ClotyRepository
+import com.example.cloty_colegio.data.api.ActividadReciente
 import com.example.cloty_colegio.data.api.Alumno
 import com.example.cloty_colegio.data.api.AlumnoRequest
 import com.example.cloty_colegio.data.api.Apoderado
@@ -13,6 +14,11 @@ import com.example.cloty_colegio.data.api.ColegioDashboard
 import com.example.cloty_colegio.data.api.ColegioRequest
 import com.example.cloty_colegio.data.api.Curso
 import com.example.cloty_colegio.data.api.CursoRequest
+import com.example.cloty_colegio.data.api.DashboardComunidadDetalle
+import com.example.cloty_colegio.data.api.DashboardCursoDetalle
+import com.example.cloty_colegio.data.api.DashboardNotificacionesDetalle
+import com.example.cloty_colegio.data.api.DashboardPrendasDetalle
+import com.example.cloty_colegio.data.api.DashboardTarjetasDetalle
 import com.example.cloty_colegio.data.api.OperacionPrendaResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +37,9 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
+    private val _refreshing = MutableStateFlow(false)
+    val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
@@ -48,6 +57,27 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _dashboard = MutableStateFlow<ColegioDashboard?>(null)
     val dashboard: StateFlow<ColegioDashboard?> = _dashboard.asStateFlow()
+
+    private val _dashboardComunidad = MutableStateFlow<DashboardComunidadDetalle?>(null)
+    val dashboardComunidad: StateFlow<DashboardComunidadDetalle?> = _dashboardComunidad.asStateFlow()
+
+    private val _dashboardTarjetas = MutableStateFlow<DashboardTarjetasDetalle?>(null)
+    val dashboardTarjetas: StateFlow<DashboardTarjetasDetalle?> = _dashboardTarjetas.asStateFlow()
+
+    private val _dashboardPrendas = MutableStateFlow<DashboardPrendasDetalle?>(null)
+    val dashboardPrendas: StateFlow<DashboardPrendasDetalle?> = _dashboardPrendas.asStateFlow()
+
+    private val _dashboardNotificaciones = MutableStateFlow<DashboardNotificacionesDetalle?>(null)
+    val dashboardNotificaciones: StateFlow<DashboardNotificacionesDetalle?> = _dashboardNotificaciones.asStateFlow()
+
+    private val _dashboardCursos = MutableStateFlow<List<DashboardCursoDetalle>>(emptyList())
+    val dashboardCursos: StateFlow<List<DashboardCursoDetalle>> = _dashboardCursos.asStateFlow()
+
+    private val _dashboardCursoDetalle = MutableStateFlow<DashboardCursoDetalle?>(null)
+    val dashboardCursoDetalle: StateFlow<DashboardCursoDetalle?> = _dashboardCursoDetalle.asStateFlow()
+
+    private val _dashboardActividad = MutableStateFlow<List<ActividadReciente>>(emptyList())
+    val dashboardActividad: StateFlow<List<ActividadReciente>> = _dashboardActividad.asStateFlow()
 
     private val _ultimaOperacion = MutableStateFlow<OperacionPrendaResponse?>(null)
     val ultimaOperacion: StateFlow<OperacionPrendaResponse?> = _ultimaOperacion.asStateFlow()
@@ -69,7 +99,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val scanMutex = Mutex()
 
-    var ubicacionEscaneo: String = "SecretarÃ­a"
+    var ubicacionEscaneo: String = "Secretaría"
 
     fun onNfcTagDetected(uid: String) {
         _ultimoUidNfc.value = uid
@@ -105,7 +135,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun restablecerContrasena(rut: String, codigo: String, password: String, onExito: () -> Unit) = launchTask {
         repo.restablecerContrasena(rut, codigo, password)
-        _message.value = "ContraseÃ±a actualizada. Ya puede iniciar sesiÃ³n."
+        _message.value = "Contraseña actualizada. Ya puede iniciar sesión."
         onExito()
     }
 
@@ -150,20 +180,99 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun cargarDashboard() = launchTask {
+    fun cargarDashboard() = launchTask { cargarDashboardInternal() }
+
+    fun refrescarDashboard() = launchRefresh { cargarDashboardInternal() }
+
+    private suspend fun cargarDashboardInternal() {
         _dashboard.value = repo.dashboard()
         _nombreColegio.value = _dashboard.value?.nombreColegio ?: _nombreColegio.value
         _idColegio.value = _dashboard.value?.idColegio ?: _idColegio.value
+        cargarDashboardDetalleInternal()
+    }
+
+    private suspend fun cargarDashboardDetalleInternal() {
+        _dashboardComunidad.value = repo.dashboardComunidad()
+        _dashboardTarjetas.value = repo.dashboardTarjetas()
+        _dashboardPrendas.value = repo.dashboardPrendas()
+        _dashboardNotificaciones.value = repo.dashboardNotificaciones()
+        _dashboardCursos.value = repo.dashboardCursos()
+        _dashboardActividad.value = repo.dashboardActividad()
+    }
+
+    fun cargarDashboardComunidad() = launchTask {
+        _dashboardComunidad.value = repo.dashboardComunidad()
+    }
+
+    fun refrescarDashboardComunidad() = launchRefresh {
+        _dashboardComunidad.value = repo.dashboardComunidad()
+    }
+
+    fun cargarDashboardTarjetas() = launchTask {
+        _dashboardTarjetas.value = repo.dashboardTarjetas()
+    }
+
+    fun refrescarDashboardTarjetas() = launchRefresh {
+        _dashboardTarjetas.value = repo.dashboardTarjetas()
+    }
+
+    fun cargarDashboardPrendas() = launchTask {
+        _dashboardPrendas.value = repo.dashboardPrendas()
+    }
+
+    fun refrescarDashboardPrendas() = launchRefresh {
+        _dashboardPrendas.value = repo.dashboardPrendas()
+    }
+
+    fun cargarDashboardNotificaciones() = launchTask {
+        _dashboardNotificaciones.value = repo.dashboardNotificaciones()
+    }
+
+    fun refrescarDashboardNotificaciones() = launchRefresh {
+        _dashboardNotificaciones.value = repo.dashboardNotificaciones()
+    }
+
+    fun cargarDashboardCursos() = launchTask {
+        _dashboardCursos.value = repo.dashboardCursos()
+    }
+
+    fun refrescarDashboardCursos() = launchRefresh {
+        _dashboardCursos.value = repo.dashboardCursos()
+    }
+
+    fun cargarDashboardCurso(idCurso: Int) = launchTask {
+        _dashboardCursoDetalle.value = repo.dashboardCurso(idCurso)
+    }
+
+    fun refrescarDashboardCurso(idCurso: Int) = launchRefresh {
+        _dashboardCursoDetalle.value = repo.dashboardCurso(idCurso)
+    }
+
+    fun cargarDashboardActividad() = launchTask {
+        _dashboardActividad.value = repo.dashboardActividad()
+    }
+
+    fun refrescarDashboardActividad() = launchRefresh {
+        _dashboardActividad.value = repo.dashboardActividad()
     }
 
     fun cargarGestion() = launchTask {
         val id = requireColegioId()
-        _apoderados.value = repo.listarApoderadosPorColegio(id)
-        _alumnos.value = repo.listarAlumnosPorColegio(id)
-        _cursos.value = repo.listarCursos(id)
+        cargarGestionInternal(id)
+    }
+
+    fun refrescarGestion() = launchRefresh {
+        val id = requireColegioId()
+        cargarGestionInternal(id)
     }
 
     fun cargarColegio() = launchTask {
+        val id = requireColegioId()
+        _colegio.value = repo.obtenerColegio(id)
+        _nombreColegio.value = _colegio.value?.nombre
+    }
+
+    fun refrescarColegio() = launchRefresh {
         val id = requireColegioId()
         _colegio.value = repo.obtenerColegio(id)
         _nombreColegio.value = _colegio.value?.nombre
@@ -260,7 +369,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun cambiarContrasena(actual: String, nueva: String) = launchTask {
         repo.cambiarContrasena(actual, nueva)
-        _message.value = "ContraseÃ±a actualizada correctamente"
+        _message.value = "Contraseña actualizada correctamente"
     }
 
     fun clearError() {
@@ -285,7 +394,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private fun requireColegioId(): Int {
         val id = _idColegio.value
         if (id == null || id <= 0) {
-            throw IllegalStateException("No se pudo identificar el colegio de la sesiÃ³n")
+            throw IllegalStateException("No se pudo identificar el colegio de la sesión")
         }
         return id
     }
@@ -303,4 +412,25 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }
+
+    private fun launchRefresh(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            if (_refreshing.value) return@launch
+            _refreshing.value = true
+            _error.value = null
+            try {
+                block()
+            } catch (e: Exception) {
+                _error.value = ApiErrorParser.mensaje(e)
+            } finally {
+                _refreshing.value = false
+            }
+        }
+    }
+
+    suspend fun listarRegiones() = repo.listarRegiones()
+
+    suspend fun listarComunas(codigoRegion: String) = repo.listarComunas(codigoRegion)
+
+    suspend fun obtenerComuna(codigoComuna: String) = repo.obtenerComuna(codigoComuna)
 }

@@ -1,4 +1,4 @@
-﻿package com.cloty.web;
+package com.cloty.web;
 
 import com.cloty.domain.Alumno;
 import com.cloty.dto.AlumnoRequest;

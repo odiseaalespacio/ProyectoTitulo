@@ -1,4 +1,4 @@
-﻿package com.example.cloty_administrador.data
+package com.example.cloty_administrador.data
 
 import android.content.Context
 import android.net.Uri
@@ -12,7 +12,9 @@ import com.example.cloty_administrador.data.api.AlumnoRequest
 import com.example.cloty_administrador.data.api.ApoderadoRequest
 import com.example.cloty_administrador.data.api.ColegioApoderadoRequest
 import com.example.cloty_administrador.data.api.ColegioRequest
+import com.example.cloty_administrador.data.api.Comuna
 import com.example.cloty_administrador.data.api.CursoRequest
+import com.example.cloty_administrador.data.api.Region
 import com.example.cloty_administrador.data.api.LoginRequest
 import com.example.cloty_administrador.data.api.TarjetaRequest
 import kotlinx.coroutines.flow.firstOrNull
@@ -48,7 +50,7 @@ class ClotyRepository(context: Context) {
         val me = api.me()
         val rol = me.rol.trim()
         require(rol == TokenStore.ROL_ADMINISTRADOR || rol == TokenStore.ROL_SUPER_USUARIO) {
-            "Esta cuenta no tiene acceso al panel de administraciÃ³n"
+            "Esta cuenta no tiene acceso al panel de administración"
         }
         tokenStore.saveSession(response.token, rol)
         return rol
@@ -157,6 +159,17 @@ class ClotyRepository(context: Context) {
 
     suspend fun importarAlumnos(idColegio: Int, uri: Uri, context: Context) =
         api.importarAlumnos(idColegio, uri.toCsvPart(context, "alumnos.csv"))
+
+    suspend fun listarRegiones() = api.listarRegiones()
+
+    suspend fun listarComunas(codigoRegion: String) = api.listarComunas(codigoRegion)
+
+    suspend fun obtenerComuna(codigoComuna: String): Comuna? =
+        try {
+            api.obtenerComuna(codigoComuna)
+        } catch (_: Exception) {
+            null
+        }
 
     private fun Uri.toCsvPart(context: Context, fileName: String): MultipartBody.Part {
         val temp = File(context.cacheDir, fileName)

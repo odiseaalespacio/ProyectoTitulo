@@ -1,4 +1,4 @@
-﻿package com.cloty.service;
+package com.cloty.service;
 
 import com.cloty.domain.EstadoNotificacion;
 import com.cloty.domain.Notificacion;
@@ -51,7 +51,7 @@ public class NotificacionService {
 	@Transactional(readOnly = true)
 	public Notificacion obtener(Integer id) {
 		return notificacionRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("NotificaciÃ³n no encontrada: " + id));
+				.orElseThrow(() -> new ResourceNotFoundException("Notificación no encontrada: " + id));
 	}
 
 	@Transactional
@@ -108,7 +108,7 @@ public class NotificacionService {
 	@Transactional
 	public void eliminar(Integer id) {
 		if (!notificacionRepository.existsById(id)) {
-			throw new ResourceNotFoundException("NotificaciÃ³n no encontrada: " + id);
+			throw new ResourceNotFoundException("Notificación no encontrada: " + id);
 		}
 		notificacionRepository.deleteById(id);
 	}

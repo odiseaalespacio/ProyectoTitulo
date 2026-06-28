@@ -1,4 +1,4 @@
-﻿package com.cloty.config;
+package com.cloty.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;

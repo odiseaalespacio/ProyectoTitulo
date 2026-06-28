@@ -1,4 +1,4 @@
-﻿package com.cloty.service;
+package com.cloty.service;
 
 import com.cloty.domain.Administrador;
 import com.cloty.domain.Apoderado;
@@ -65,10 +65,10 @@ public class AuthService {
 		Usuario usuario = resolverUsuarioPorIdentificador(id);
 		ClotyUserDetails user = (ClotyUserDetails) userDetailsService.loadUserByUsername(usuario.getUsername());
 		if (!user.isEnabled()) {
-			throw new BadRequestException("La cuenta estÃ¡ deshabilitada");
+			throw new BadRequestException("La cuenta está deshabilitada");
 		}
 		if (!passwordEncoder.matches(req.password(), user.getPassword())) {
-			throw new BadRequestException("Credenciales invÃ¡lidas");
+			throw new BadRequestException("Credenciales inválidas");
 		}
 		return new AuthTokenResponse(jwtService.generateToken(user), expirationMs);
 	}
@@ -89,7 +89,7 @@ public class AuthService {
 						.map(Colegio::getIdUsuario)
 						.flatMap(usuarioRepository::findById))
 				.or(() -> loginPorEmailColegio(id))
-				.orElseThrow(() -> new BadRequestException("Credenciales invÃ¡lidas"));
+				.orElseThrow(() -> new BadRequestException("Credenciales inválidas"));
 	}
 
 	@Transactional
@@ -99,7 +99,7 @@ public class AuthService {
 
 		apoderadoRepository.findByRut(rutTrim).ifPresent(apo -> {
 			if (apo.getIdUsuario() != null) {
-				throw new ConflictException("Ya existe una cuenta activa con este RUT. Use el inicio de sesiÃ³n.");
+				throw new ConflictException("Ya existe una cuenta activa con este RUT. Use el inicio de sesión.");
 			}
 			throw new BadRequestException(
 					"Este RUT ya fue registrado por un colegio. Active su cuenta con POST /api/auth/activar-cuenta-apoderado.");
@@ -109,13 +109,13 @@ public class AuthService {
 		if (emailNorm != null) {
 			apoderadoRepository.findByEmailIgnoreCase(emailNorm).ifPresent(apo -> {
 				if (!apo.getRut().equals(rutTrim)) {
-					throw new ConflictException("El correo ya estÃ¡ asociado a otro apoderado");
+					throw new ConflictException("El correo ya está asociado a otro apoderado");
 				}
 			});
 		}
 
 		if (usuarioRepository.existsByRut(rutTrim)) {
-			throw new ConflictException("El RUT ya estÃ¡ asociado a una cuenta");
+			throw new ConflictException("El RUT ya está asociado a una cuenta");
 		}
 
 		String username = NombreUsuarioGenerator.paraPersona(req.nombres(), req.apellidos(), rutTrim, usuarioRepository::existsByUsername);
@@ -135,7 +135,8 @@ public class AuthService {
 				.apellidos(req.apellidos())
 				.email(emailNorm != null ? req.email().trim() : null)
 				.telefono(blancoANull(req.telefono()))
-				.direccion(blancoANull(req.direccion()))
+				.codigoComuna(blancoANull(req.codigoComuna()))
+				.calleNumero(blancoANull(req.calleNumero()))
 				.build();
 		apoderadoRepository.save(a);
 		ClotyUserDetails principal = (ClotyUserDetails) userDetailsService.loadUserByUsername(u.getUsername());
@@ -149,22 +150,22 @@ public class AuthService {
 				.orElseThrow(() -> new BadRequestException(
 						"No hay datos de apoderado con ese RUT. Si no fue cargado por un colegio, use el registro de apoderado."));
 		if (a.getIdUsuario() != null) {
-			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesiÃ³n.");
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
 		}
 		if (a.getEmail() == null || a.getEmail().isBlank()) {
 			throw new BadRequestException("No hay correo registrado para este apoderado. Contacte al colegio.");
 		}
 		var vinculos = colegioApoderadoRepository.findByIdApoderado(a.getIdApoderado());
 		if (vinculos.isEmpty()) {
-			throw new BadRequestException("El apoderado no estÃ¡ asociado a ningÃºn colegio. Contacte al colegio.");
+			throw new BadRequestException("El apoderado no está asociado a ningún colegio. Contacte al colegio.");
 		}
 		Colegio colegio = colegioRepository.findById(vinculos.get(0).getIdColegio())
-				.orElseThrow(() -> new BadRequestException("No se encontrÃ³ el colegio asociado."));
+				.orElseThrow(() -> new BadRequestException("No se encontró el colegio asociado."));
 		activacionCodigoService.emitirParaApoderado(a, colegio);
 		String correo = enmascararCorreo(a.getEmail());
 		return new SolicitarCodigoActivacionResponse(
 				correo,
-				"Se enviÃ³ un cÃ³digo de activaciÃ³n al correo registrado (" + correo + ").");
+				"Se envió un código de activación al correo registrado (" + correo + ").");
 	}
 
 	@Transactional
@@ -174,7 +175,7 @@ public class AuthService {
 				.orElseThrow(() -> new BadRequestException(
 						"No hay colegio con ese RUT. Verifique los datos cargados por el administrador."));
 		if (col.getIdUsuario() != null) {
-			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesiÃ³n.");
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
 		}
 		if (col.getEmail() == null || col.getEmail().isBlank()) {
 			throw new BadRequestException("No hay correo registrado para este colegio. Contacte al administrador.");
@@ -183,7 +184,7 @@ public class AuthService {
 		String correo = enmascararCorreo(col.getEmail());
 		return new SolicitarCodigoActivacionResponse(
 				correo,
-				"Se enviÃ³ un cÃ³digo de activaciÃ³n al correo registrado (" + correo + ").");
+				"Se envió un código de activación al correo registrado (" + correo + ").");
 	}
 
 	@Transactional
@@ -191,20 +192,20 @@ public class AuthService {
 		String rutTrim = ChileValidacion.formatearRutConGuion(req.rut());
 		Usuario u = usuarioRepository.findByRut(rutTrim)
 				.orElseThrow(() -> new BadRequestException(
-						"No hay cuenta activa con ese RUT. Si aÃºn no activÃ³ su cuenta, use la opciÃ³n Activar cuenta."));
+						"No hay cuenta activa con ese RUT. Si aún no activó su cuenta, use la opción Activar cuenta."));
 		if (!Boolean.TRUE.equals(u.getEstado())) {
-			throw new BadRequestException("La cuenta estÃ¡ deshabilitada. Contacte al administrador.");
+			throw new BadRequestException("La cuenta está deshabilitada. Contacte al administrador.");
 		}
 		String email = resolverCorreoPorUsuario(u);
 		if (email == null || email.isBlank()) {
 			throw new BadRequestException(
-					"No hay correo registrado para recuperar la contraseÃ±a. Contacte al administrador.");
+					"No hay correo registrado para recuperar la contraseña. Contacte al administrador.");
 		}
 		activacionCodigoService.emitirRecuperacionContrasena(u.getIdUsuario(), email);
 		String correo = enmascararCorreo(email);
 		return new SolicitarCodigoActivacionResponse(
 				correo,
-				"Se enviÃ³ un cÃ³digo de recuperaciÃ³n al correo registrado (" + correo + ").");
+				"Se envió un código de recuperación al correo registrado (" + correo + ").");
 	}
 
 	@Transactional
@@ -213,11 +214,11 @@ public class AuthService {
 		Usuario u = usuarioRepository.findByRut(rutTrim)
 				.orElseThrow(() -> new BadRequestException("No hay cuenta con ese RUT."));
 		if (!Boolean.TRUE.equals(u.getEstado())) {
-			throw new BadRequestException("La cuenta estÃ¡ deshabilitada.");
+			throw new BadRequestException("La cuenta está deshabilitada.");
 		}
 		activacionCodigoService.validarYConsumirRecuperacionContrasena(u.getIdUsuario(), req.codigo());
 		if (passwordEncoder.matches(req.password(), u.getPasswordHash())) {
-			throw new BadRequestException("La nueva contraseÃ±a debe ser distinta a la actual.");
+			throw new BadRequestException("La nueva contraseña debe ser distinta a la actual.");
 		}
 		u.setPasswordHash(passwordEncoder.encode(req.password()));
 		usuarioRepository.save(u);
@@ -229,7 +230,7 @@ public class AuthService {
 		Apoderado a = apoderadoRepository.findByRut(rutTrim)
 				.orElseThrow(() -> new BadRequestException("No hay datos de apoderado con ese RUT."));
 		if (a.getIdUsuario() != null) {
-			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesiÃ³n.");
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
 		}
 		activacionCodigoService.verificarCodigoApoderado(a.getIdApoderado(), req.codigo());
 	}
@@ -241,7 +242,7 @@ public class AuthService {
 				.orElseThrow(() -> new BadRequestException(
 						"No hay colegio con ese RUT. Verifique los datos cargados por el administrador."));
 		if (col.getIdUsuario() != null) {
-			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesiÃ³n.");
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
 		}
 		activacionCodigoService.verificarCodigoColegio(col.getIdColegio(), req.codigo());
 	}
@@ -253,10 +254,10 @@ public class AuthService {
 				.orElseThrow(() -> new BadRequestException(
 						"No hay datos de apoderado con ese RUT. Si no fue cargado por un colegio, use POST /api/auth/registro-apoderado."));
 		if (a.getIdUsuario() != null) {
-			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesiÃ³n.");
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
 		}
 		if (usuarioRepository.existsByRut(rutTrim)) {
-			throw new ConflictException("El RUT ya estÃ¡ asociado a una cuenta");
+			throw new ConflictException("El RUT ya está asociado a una cuenta");
 		}
 		activacionCodigoService.validarYConsumirApoderado(a.getIdApoderado(), req.codigo());
 		String username = NombreUsuarioGenerator.paraPersona(a.getNombres(), a.getApellidos(), rutTrim, usuarioRepository::existsByUsername);
@@ -282,10 +283,10 @@ public class AuthService {
 				.orElseThrow(() -> new BadRequestException(
 						"No hay colegio con ese RUT. Verifique los datos cargados por el administrador."));
 		if (col.getIdUsuario() != null) {
-			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesiÃ³n.");
+			throw new ConflictException("Esta cuenta ya fue activada. Use el inicio de sesión.");
 		}
 		if (usuarioRepository.existsByRut(rutTrim)) {
-			throw new ConflictException("El RUT ya estÃ¡ asociado a una cuenta");
+			throw new ConflictException("El RUT ya está asociado a una cuenta");
 		}
 		if (col.getEmail() == null || col.getEmail().isBlank()) {
 			throw new BadRequestException("El colegio no tiene correo registrado. Contacte al administrador.");
@@ -330,10 +331,10 @@ public class AuthService {
 		Usuario u = usuarioRepository.findById(p.getIdUsuario())
 				.orElseThrow(() -> new BadRequestException("Usuario no encontrado"));
 		if (!passwordEncoder.matches(req.contrasenaActual(), u.getPasswordHash())) {
-			throw new BadRequestException("La contraseÃ±a actual no es correcta");
+			throw new BadRequestException("La contraseña actual no es correcta");
 		}
 		if (req.contrasenaActual().equals(req.contrasenaNueva())) {
-			throw new BadRequestException("La nueva contraseÃ±a debe ser distinta a la actual");
+			throw new BadRequestException("La nueva contraseña debe ser distinta a la actual");
 		}
 		u.setPasswordHash(passwordEncoder.encode(req.contrasenaNueva()));
 		usuarioRepository.save(u);
@@ -401,7 +402,7 @@ public class AuthService {
 		}
 		String t = email.trim();
 		if (!t.contains("@") || t.indexOf('@') == 0 || t.endsWith("@")) {
-			throw new BadRequestException("El formato del correo no es vÃ¡lido");
+			throw new BadRequestException("El formato del correo no es válido");
 		}
 	}
 }

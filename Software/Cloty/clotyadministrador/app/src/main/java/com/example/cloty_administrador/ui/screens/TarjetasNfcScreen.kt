@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.cloty_administrador.ui.ClotyViewModel
 import com.example.cloty_administrador.ui.ClotyViewModel.Companion.TARJETAS_POR_ALUMNO
+import com.example.cloty_administrador.ui.components.ClotyPullRefresh
 import com.example.cloty_administrador.ui.components.MessageBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,6 +50,7 @@ fun TarjetasNfcScreen(
     val tarjetasDelActual by viewModel.tarjetasDelActual.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
     var idColegio by rememberSaveable { mutableIntStateOf(0) }
     var idCurso by rememberSaveable { mutableIntStateOf(0) }
     var modoLote by rememberSaveable { mutableStateOf(false) }
@@ -80,10 +82,14 @@ fun TarjetasNfcScreen(
             )
         }
     ) { padding ->
+        ClotyPullRefresh(
+            refreshing = refreshing,
+            onRefresh = { viewModel.refrescarTarjetasNfc(idColegio, idCurso, modoLote) },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -132,6 +138,7 @@ fun TarjetasNfcScreen(
             )
             MessageBanner(error, true)
             MessageBanner(message, false)
+        }
         }
     }
 }

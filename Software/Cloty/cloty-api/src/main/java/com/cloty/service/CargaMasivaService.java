@@ -69,7 +69,8 @@ public class CargaMasivaService {
 								apellidos,
 								valorOpcional(fila, "email"),
 								valorOpcional(fila, "telefono"),
-								valorOpcional(fila, "direccion")
+								valorOpcional(fila, "codigo_comuna"),
+								valorOpcional(fila, "calle_numero", "direccion")
 						)));
 
 				try {
@@ -186,6 +187,11 @@ public class CargaMasivaService {
 	private static String valorOpcional(Map<String, String> fila, String key) {
 		String v = fila.get(key);
 		return v == null || v.isBlank() ? null : v.trim();
+	}
+
+	private static String valorOpcional(Map<String, String> fila, String key, String fallbackKey) {
+		String v = valor(fila, key, fallbackKey);
+		return v.isBlank() ? null : v;
 	}
 
 	private static boolean parseEstado(String raw) {

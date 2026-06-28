@@ -12,12 +12,23 @@ import com.cloty.domain.Tarjeta;
 import com.cloty.domain.TipoEvento;
 import com.cloty.dto.ActividadRecienteResponse;
 import com.cloty.dto.ColegioDashboardResponse;
+import com.cloty.dto.DashboardAlumnoItem;
+import com.cloty.dto.DashboardApoderadoItem;
+import com.cloty.dto.DashboardComunidadDetalleResponse;
+import com.cloty.dto.DashboardCursoDetalleResponse;
+import com.cloty.dto.DashboardNotificacionItem;
+import com.cloty.dto.DashboardNotificacionesDetalleResponse;
+import com.cloty.dto.DashboardPrendasDetalleResponse;
+import com.cloty.dto.DashboardTarjetaItem;
+import com.cloty.dto.DashboardTarjetasDetalleResponse;
 import com.cloty.dto.EventoRequest;
 import com.cloty.dto.NotificacionRequest;
 import com.cloty.dto.OperacionPrendaResponse;
+import com.cloty.dto.ResumenCursoDashboard;
 import com.cloty.dto.ScanPrendaRequest;
 import com.cloty.repo.AlumnoRepository;
 import com.cloty.repo.ApoderadoRepository;
+import com.cloty.repo.ColegioApoderadoRepository;
 import com.cloty.repo.ColegioRepository;
 import com.cloty.repo.CursoRepository;
 import com.cloty.repo.EventoRepository;
@@ -36,6 +47,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -47,6 +60,7 @@ public class ColegioOperacionService {
 	private final ApoderadoRepository apoderadoRepository;
 	private final CursoRepository cursoRepository;
 	private final ColegioRepository colegioRepository;
+	private final ColegioApoderadoRepository colegioApoderadoRepository;
 	private final EventoRepository eventoRepository;
 	private final EventoService eventoService;
 	private final NotificacionService notificacionService;
@@ -235,6 +249,26 @@ public class ColegioOperacionService {
 		Colegio colegio = colegioRepository.findById(idColegio)
 				.orElseThrow(() -> new ResourceNotFoundException("Colegio no encontrado: " + idColegio));
 
+		List<Alumno> alumnos = alumnoRepository.findByIdColegioOrderByApellidosAscNombresAsc(idColegio);
+		long totalAlumnos = alumnos.size();
+		long alumnosConTarjeta = tarjetaRepository.countAlumnosConTarjeta(idColegio);
+		long alumnosSinTarjeta = Math.max(0, totalAlumnos - alumnosConTarjeta);
+
+		List<Integer> idsApoderados = colegioApoderadoRepository.findByIdColegio(idColegio).stream()
+				.map(ca -> ca.getIdApoderado())
+				.distinct()
+				.toList();
+		long totalApoderados = idsApoderados.size();
+		long apoderadosConCuenta = idsApoderados.isEmpty() ? 0
+				: apoderadoRepository.findAllById(idsApoderados).stream()
+						.filter(a -> a.getIdUsuario() != null)
+						.count();
+
+		List<Curso> cursos = cursoRepository.findByIdColegioOrderByNombreAsc(idColegio);
+		List<ResumenCursoDashboard> resumenCursos = cursos.stream()
+				.map(curso -> resumenCurso(curso))
+				.toList();
+
 		LocalDateTime inicioHoy = LocalDate.now().atStartOfDay();
 		long encontradasHoy = eventoRepository.countByColegioAndTipoDesde(
 				idColegio, TipoEvento.PRENDA_ENCONTRADA, inicioHoy);
@@ -247,21 +281,50 @@ public class ColegioOperacionService {
 			acciones.add(toActividad(e));
 		}
 
-		long notificaciones = notificacionRepository.findByColegioId(idColegio).stream()
+		List<Notificacion> notificacionesColegio = notificacionRepository.findByColegioId(idColegio);
+		long notificacionesEnviadas = notificacionesColegio.stream()
 				.filter(n -> n.getEstado() == EstadoNotificacion.ENVIADA)
+				.count();
+		long notificacionesPendientes = notificacionesColegio.stream()
+				.filter(n -> n.getEstado() == EstadoNotificacion.PENDIENTE)
 				.count();
 
 		return new ColegioDashboardResponse(
 				idColegio,
 				colegio.getNombre(),
+				totalAlumnos,
+				totalApoderados,
+				cursos.size(),
+				apoderadosConCuenta,
+				alumnosConTarjeta,
+				alumnosSinTarjeta,
 				tarjetaRepository.countByColegioAndEstado(idColegio, EstadoTarjeta.ACTIVA),
-				tarjetaRepository.countAlumnosConTarjeta(idColegio),
+				tarjetaRepository.countByColegioAndEstado(idColegio, EstadoTarjeta.PERDIDA),
+				tarjetaRepository.countByColegioAndEstado(idColegio, EstadoTarjeta.DESACTIVADA),
 				encontradasHoy,
 				eventoRepository.countByColegioAndTipo(idColegio, TipoEvento.PRENDA_ENCONTRADA),
 				entregadasHoy,
 				eventoRepository.countByColegioAndTipo(idColegio, TipoEvento.PRENDA_RECUPERADA),
-				notificaciones,
+				notificacionesEnviadas,
+				notificacionesPendientes,
+				resumenCursos,
 				acciones
+		);
+	}
+
+	private ResumenCursoDashboard resumenCurso(Curso curso) {
+		List<Alumno> alumnosCurso = alumnoRepository.findByIdCursoOrderByApellidosAscNombresAsc(curso.getIdCurso());
+		long conTarjeta = alumnosCurso.stream()
+				.filter(a -> !tarjetaRepository.findByIdAlumnoOrderByFechaAsignacionDesc(a.getIdAlumno()).isEmpty())
+				.count();
+		long total = alumnosCurso.size();
+		return new ResumenCursoDashboard(
+				curso.getIdCurso(),
+				curso.getNombre(),
+				curso.getNivel(),
+				total,
+				conTarjeta,
+				Math.max(0, total - conTarjeta)
 		);
 	}
 
@@ -296,5 +359,230 @@ public class ColegioOperacionService {
 		if (!colegioRepository.existsById(idColegio)) {
 			throw new ResourceNotFoundException("Colegio no encontrado: " + idColegio);
 		}
+	}
+
+	@Transactional(readOnly = true)
+	public DashboardComunidadDetalleResponse dashboardComunidad(Integer idColegio) {
+		asegurarColegio(idColegio);
+		List<Alumno> alumnos = alumnoRepository.findByIdColegioOrderByApellidosAscNombresAsc(idColegio);
+		Map<Integer, Curso> cursosPorId = cursoRepository.findByIdColegioOrderByNombreAsc(idColegio).stream()
+				.collect(Collectors.toMap(Curso::getIdCurso, c -> c));
+		Map<Integer, Apoderado> apoderadosPorId = apoderadosDelColegio(idColegio).stream()
+				.collect(Collectors.toMap(Apoderado::getIdApoderado, a -> a));
+
+		List<DashboardAlumnoItem> alumnosLista = new ArrayList<>();
+		long conTarjeta = 0;
+		for (Alumno alumno : alumnos) {
+			boolean tieneTarjeta = !tarjetaRepository.findByIdAlumnoOrderByFechaAsignacionDesc(alumno.getIdAlumno()).isEmpty();
+			if (tieneTarjeta) {
+				conTarjeta++;
+			}
+			alumnosLista.add(toAlumnoItem(alumno, cursosPorId, apoderadosPorId, tieneTarjeta));
+		}
+
+		List<Apoderado> apoderados = apoderadosDelColegio(idColegio);
+		List<DashboardApoderadoItem> apoderadosLista = apoderados.stream()
+				.map(this::toApoderadoItem)
+				.toList();
+
+		return new DashboardComunidadDetalleResponse(
+				alumnos.size(),
+				apoderados.size(),
+				cursosPorId.size(),
+				apoderados.stream().filter(a -> a.getIdUsuario() != null).count(),
+				conTarjeta,
+				Math.max(0, alumnos.size() - conTarjeta),
+				alumnosLista,
+				apoderadosLista
+		);
+	}
+
+	@Transactional(readOnly = true)
+	public DashboardTarjetasDetalleResponse dashboardTarjetas(Integer idColegio) {
+		asegurarColegio(idColegio);
+		Map<Integer, Alumno> alumnosPorId = alumnoRepository.findByIdColegioOrderByApellidosAscNombresAsc(idColegio).stream()
+				.collect(Collectors.toMap(Alumno::getIdAlumno, a -> a));
+		Map<Integer, Curso> cursosPorId = cursoRepository.findByIdColegioOrderByNombreAsc(idColegio).stream()
+				.collect(Collectors.toMap(Curso::getIdCurso, c -> c));
+
+		List<DashboardTarjetaItem> items = tarjetaRepository.findByColegioId(idColegio).stream()
+				.map(t -> toTarjetaItem(t, alumnosPorId, cursosPorId))
+				.toList();
+
+		return new DashboardTarjetasDetalleResponse(
+				tarjetaRepository.countByColegioAndEstado(idColegio, EstadoTarjeta.ACTIVA),
+				tarjetaRepository.countByColegioAndEstado(idColegio, EstadoTarjeta.PERDIDA),
+				tarjetaRepository.countByColegioAndEstado(idColegio, EstadoTarjeta.DESACTIVADA),
+				items
+		);
+	}
+
+	@Transactional(readOnly = true)
+	public DashboardPrendasDetalleResponse dashboardPrendas(Integer idColegio) {
+		asegurarColegio(idColegio);
+		LocalDateTime inicioHoy = LocalDate.now().atStartOfDay();
+		List<Evento> recientes = eventoRepository.findByColegioId(idColegio, PageRequest.of(0, 50));
+		List<ActividadRecienteResponse> actividad = recientes.stream()
+				.filter(e -> e.getTipoEvento() == TipoEvento.PRENDA_ENCONTRADA
+						|| e.getTipoEvento() == TipoEvento.PRENDA_RECUPERADA)
+				.map(this::toActividad)
+				.toList();
+
+		return new DashboardPrendasDetalleResponse(
+				eventoRepository.countByColegioAndTipoDesde(idColegio, TipoEvento.PRENDA_ENCONTRADA, inicioHoy),
+				eventoRepository.countByColegioAndTipo(idColegio, TipoEvento.PRENDA_ENCONTRADA),
+				eventoRepository.countByColegioAndTipoDesde(idColegio, TipoEvento.PRENDA_RECUPERADA, inicioHoy),
+				eventoRepository.countByColegioAndTipo(idColegio, TipoEvento.PRENDA_RECUPERADA),
+				actividad
+		);
+	}
+
+	@Transactional(readOnly = true)
+	public DashboardNotificacionesDetalleResponse dashboardNotificaciones(Integer idColegio) {
+		asegurarColegio(idColegio);
+		List<Notificacion> notificaciones = notificacionRepository.findByColegioId(idColegio);
+		Map<Integer, Apoderado> apoderadosPorId = apoderadosDelColegio(idColegio).stream()
+				.collect(Collectors.toMap(Apoderado::getIdApoderado, a -> a));
+
+		List<DashboardNotificacionItem> recientes = notificaciones.stream()
+				.limit(50)
+				.map(n -> toNotificacionItem(n, apoderadosPorId))
+				.toList();
+
+		return new DashboardNotificacionesDetalleResponse(
+				notificaciones.stream().filter(n -> n.getEstado() == EstadoNotificacion.ENVIADA).count(),
+				notificaciones.stream().filter(n -> n.getEstado() == EstadoNotificacion.PENDIENTE).count(),
+				recientes
+		);
+	}
+
+	@Transactional(readOnly = true)
+	public List<DashboardCursoDetalleResponse> dashboardCursos(Integer idColegio) {
+		asegurarColegio(idColegio);
+		Map<Integer, Apoderado> apoderadosPorId = apoderadosDelColegio(idColegio).stream()
+				.collect(Collectors.toMap(Apoderado::getIdApoderado, a -> a));
+
+		return cursoRepository.findByIdColegioOrderByNombreAsc(idColegio).stream()
+				.map(curso -> detalleCurso(curso, apoderadosPorId))
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public DashboardCursoDetalleResponse dashboardCurso(Integer idColegio, Integer idCurso) {
+		asegurarColegio(idColegio);
+		Curso curso = cursoRepository.findById(idCurso)
+				.orElseThrow(() -> new ResourceNotFoundException("Curso no encontrado: " + idCurso));
+		if (!curso.getIdColegio().equals(idColegio)) {
+			throw new BadRequestException("El curso no pertenece a su colegio");
+		}
+		Map<Integer, Apoderado> apoderadosPorId = apoderadosDelColegio(idColegio).stream()
+				.collect(Collectors.toMap(Apoderado::getIdApoderado, a -> a));
+		return detalleCurso(curso, apoderadosPorId);
+	}
+
+	@Transactional(readOnly = true)
+	public List<ActividadRecienteResponse> dashboardActividad(Integer idColegio) {
+		asegurarColegio(idColegio);
+		return eventoRepository.findByColegioId(idColegio, PageRequest.of(0, 50)).stream()
+				.map(this::toActividad)
+				.toList();
+	}
+
+	private DashboardCursoDetalleResponse detalleCurso(Curso curso, Map<Integer, Apoderado> apoderadosPorId) {
+		List<Alumno> alumnosCurso = alumnoRepository.findByIdCursoOrderByApellidosAscNombresAsc(curso.getIdCurso());
+		List<DashboardAlumnoItem> items = new ArrayList<>();
+		long conTarjeta = 0;
+		for (Alumno alumno : alumnosCurso) {
+			boolean tieneTarjeta = !tarjetaRepository.findByIdAlumnoOrderByFechaAsignacionDesc(alumno.getIdAlumno()).isEmpty();
+			if (tieneTarjeta) {
+				conTarjeta++;
+			}
+			items.add(toAlumnoItem(alumno, Map.of(curso.getIdCurso(), curso), apoderadosPorId, tieneTarjeta));
+		}
+		long total = alumnosCurso.size();
+		return new DashboardCursoDetalleResponse(
+				curso.getIdCurso(),
+				curso.getNombre(),
+				curso.getNivel(),
+				total,
+				conTarjeta,
+				Math.max(0, total - conTarjeta),
+				items
+		);
+	}
+
+	private List<Apoderado> apoderadosDelColegio(Integer idColegio) {
+		List<Integer> ids = colegioApoderadoRepository.findByIdColegio(idColegio).stream()
+				.map(ca -> ca.getIdApoderado())
+				.distinct()
+				.toList();
+		if (ids.isEmpty()) {
+			return List.of();
+		}
+		return apoderadoRepository.findAllById(ids);
+	}
+
+	private DashboardAlumnoItem toAlumnoItem(
+			Alumno alumno,
+			Map<Integer, Curso> cursosPorId,
+			Map<Integer, Apoderado> apoderadosPorId,
+			boolean tieneTarjeta) {
+		Curso curso = cursosPorId.get(alumno.getIdCurso());
+		Apoderado apoderado = apoderadosPorId.get(alumno.getIdApoderado());
+		String nombreApoderado = apoderado != null
+				? apoderado.getNombres() + " " + apoderado.getApellidos()
+				: null;
+		return new DashboardAlumnoItem(
+				alumno.getIdAlumno(),
+				alumno.getRut(),
+				alumno.getNombres(),
+				alumno.getApellidos(),
+				curso != null ? curso.getNombre() : null,
+				tieneTarjeta,
+				nombreApoderado
+		);
+	}
+
+	private DashboardApoderadoItem toApoderadoItem(Apoderado apoderado) {
+		return new DashboardApoderadoItem(
+				apoderado.getIdApoderado(),
+				apoderado.getRut(),
+				apoderado.getNombres(),
+				apoderado.getApellidos(),
+				apoderado.getEmail(),
+				apoderado.getIdUsuario() != null
+		);
+	}
+
+	private DashboardTarjetaItem toTarjetaItem(
+			Tarjeta tarjeta,
+			Map<Integer, Alumno> alumnosPorId,
+			Map<Integer, Curso> cursosPorId) {
+		Alumno alumno = alumnosPorId.get(tarjeta.getIdAlumno());
+		Curso curso = alumno != null ? cursosPorId.get(alumno.getIdCurso()) : null;
+		String nombreAlumno = alumno != null ? alumno.getNombres() + " " + alumno.getApellidos() : null;
+		return new DashboardTarjetaItem(
+				tarjeta.getIdTarjeta(),
+				tarjeta.getUidNfc(),
+				tarjeta.getEstado(),
+				tarjeta.getTipoPrenda(),
+				nombreAlumno,
+				curso != null ? curso.getNombre() : null
+		);
+	}
+
+	private DashboardNotificacionItem toNotificacionItem(Notificacion n, Map<Integer, Apoderado> apoderadosPorId) {
+		Apoderado apoderado = apoderadosPorId.get(n.getIdApoderado());
+		String nombreApoderado = apoderado != null
+				? apoderado.getNombres() + " " + apoderado.getApellidos()
+				: null;
+		return new DashboardNotificacionItem(
+				n.getIdNotificacion(),
+				n.getTitulo(),
+				n.getMensaje(),
+				n.getEstado(),
+				nombreApoderado,
+				n.getFechaEnvio()
+		);
 	}
 }

@@ -1,4 +1,4 @@
-﻿package com.example.cloty_apoderado.data.api
+package com.example.cloty_apoderado.data.api
 
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -47,4 +47,13 @@ interface ClotyApi {
 
     @PATCH("api/notificaciones/{id}/leida")
     suspend fun marcarLeida(@Path("id") id: Int): Notificacion
+
+    @GET("api/ubicacion/regiones")
+    suspend fun listarRegiones(): List<Region>
+
+    @GET("api/ubicacion/regiones/{codigoRegion}/comunas")
+    suspend fun listarComunas(@Path("codigoRegion") codigoRegion: String): List<Comuna>
+
+    @GET("api/ubicacion/comunas/{codigoComuna}")
+    suspend fun obtenerComuna(@Path("codigoComuna") codigoComuna: String): Comuna
 }

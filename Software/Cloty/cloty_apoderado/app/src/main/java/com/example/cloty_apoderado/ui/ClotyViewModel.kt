@@ -1,4 +1,4 @@
-﻿package com.example.cloty_apoderado.ui
+package com.example.cloty_apoderado.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -29,6 +29,9 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
+
+    private val _refreshing = MutableStateFlow(false)
+    val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -80,14 +83,14 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun restablecerContrasena(rut: String, codigo: String, password: String, onExito: () -> Unit) = launchTask {
         repo.restablecerContrasena(rut, codigo, password)
-        _message.value = "ContraseÃ±a actualizada. Ya puede iniciar sesiÃ³n."
+        _message.value = "Contraseña actualizada. Ya puede iniciar sesión."
         onExito()
     }
 
     fun solicitarCodigoActivacion(rut: String, onExito: () -> Unit) = launchTask {
         val resp = repo.solicitarCodigoActivacion(rut)
         _correoActivacion.value = resp.correoEnmascarado
-        _message.value = resp.mensaje ?: "CÃ³digo enviado al correo registrado"
+        _message.value = resp.mensaje ?: "Código enviado al correo registrado"
         onExito()
     }
 
@@ -143,7 +146,12 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun actualizarMisDatos(email: String, telefono: String, direccion: String) = launchTask {
+    fun actualizarMisDatos(
+        email: String,
+        telefono: String,
+        codigoComuna: String?,
+        calleNumero: String
+    ) = launchTask {
         val perfil = _apoderado.value ?: throw IllegalStateException("Perfil no cargado")
         val id = idApoderado ?: perfil.idApoderado
         val req = ApoderadoRequest(
@@ -153,13 +161,18 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
             apellidos = perfil.apellidos,
             email = email.trim().ifBlank { null },
             telefono = telefono.trim().ifBlank { null },
-            direccion = direccion.trim().ifBlank { null }
+            codigoComuna = codigoComuna?.trim()?.ifBlank { null },
+            calleNumero = calleNumero.trim().ifBlank { null }
         )
         _apoderado.value = repo.actualizarApoderado(id, req)
         _message.value = "Datos de contacto actualizados"
     }
 
-    fun cargarDatos() = launchTask {
+    fun cargarDatos() = launchTask { cargarDatosInternal() }
+
+    fun refrescarDatos() = launchRefresh { cargarDatosInternal() }
+
+    private suspend fun cargarDatosInternal() {
         _pupilos.value = repo.misPupilos()
         val id = idApoderado ?: repo.me().idApoderado
         idApoderado = id
@@ -175,7 +188,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun cambiarContrasena(actual: String, nueva: String) = launchTask {
         repo.cambiarContrasena(actual, nueva)
-        _message.value = "ContraseÃ±a actualizada correctamente"
+        _message.value = "Contraseña actualizada correctamente"
     }
 
     fun clearMessages() {
@@ -196,4 +209,25 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }
+
+    private fun launchRefresh(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            if (_refreshing.value) return@launch
+            _refreshing.value = true
+            _error.value = null
+            try {
+                block()
+            } catch (e: Exception) {
+                _error.value = ApiErrorParser.mensaje(e)
+            } finally {
+                _refreshing.value = false
+            }
+        }
+    }
+
+    suspend fun listarRegiones() = repo.listarRegiones()
+
+    suspend fun listarComunas(codigoRegion: String) = repo.listarComunas(codigoRegion)
+
+    suspend fun obtenerComuna(codigoComuna: String) = repo.obtenerComuna(codigoComuna)
 }

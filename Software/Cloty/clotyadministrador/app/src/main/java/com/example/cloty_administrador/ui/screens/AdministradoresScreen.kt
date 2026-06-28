@@ -41,6 +41,7 @@ import com.example.cloty_administrador.data.api.Administrador
 import com.example.cloty_administrador.data.api.AdministradorCompletoRequest
 import com.example.cloty_administrador.data.api.AdministradorRequest
 import com.example.cloty_administrador.ui.ClotyViewModel
+import com.example.cloty_administrador.ui.components.ClotyPullRefresh
 import com.example.cloty_administrador.ui.components.EmailTextField
 import com.example.cloty_administrador.ui.components.MessageBanner
 import com.example.cloty_administrador.ui.components.PasswordTextField
@@ -55,6 +56,7 @@ fun AdministradoresScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     val lista by viewModel.administradores.collectAsState()
     val usuariosPorId by viewModel.usuariosPorId.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var showDialog by rememberSaveable { mutableStateOf(false) }
@@ -83,13 +85,21 @@ fun AdministradoresScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             }
         }
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+        ClotyPullRefresh(
+            refreshing = refreshing,
+            onRefresh = { viewModel.refrescarAdministradores() },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+        Column(Modifier.fillMaxSize().padding(16.dp)) {
             MessageBanner(error, true)
             MessageBanner(message, false, Modifier.padding(top = 8.dp))
             if (lista.isEmpty() && !loading && error == null) {
                 Text("No hay administradores registrados.")
             }
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            LazyColumn(
+                Modifier.weight(1f).fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 items(lista) { admin ->
                     val username = usuariosPorId[admin.idUsuario]?.username
                     ListItem(
@@ -118,6 +128,7 @@ fun AdministradoresScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                     )
                 }
             }
+        }
         }
     }
 

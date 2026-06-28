@@ -1,4 +1,4 @@
-rut,nombres,apellidos,email,telefono,direccion
-12345678-5,María Fernanda,López Silva,matii.vargas@duocuc.cl,+56911112222,
-15678234-3,Juan Carlos,Pérez Díaz,matii.vargas@duocuc.cl,+56922223333,Calle Falsa 123
-18392456-7,Rosa Elena,Muñoz Vega,matii.vargas@duocuc.cl,+56933334444,Av. Los Alerces 456
+rut,nombres,apellidos,email,telefono,codigo_comuna,calle_numero
+12345678-5,María Fernanda,López Silva,matii.vargas@duocuc.cl,+56911112222,13101,Av. Libertador 100
+15678234-3,Juan Carlos,Pérez Díaz,matii.vargas@duocuc.cl,+56922223333,13101,Calle Falsa 123
+18392456-7,Rosa Elena,Muñoz Vega,matii.vargas@duocuc.cl,+56933334444,13114,Av. Los Alerces 456

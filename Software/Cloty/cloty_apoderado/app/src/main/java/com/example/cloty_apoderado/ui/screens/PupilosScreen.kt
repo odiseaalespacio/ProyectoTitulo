@@ -18,13 +18,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.cloty_apoderado.data.api.PupiloResumen
 import com.example.cloty_apoderado.ui.ClotyViewModel
+import com.example.cloty_apoderado.ui.components.ClotyPullRefresh
 
 @Composable
 fun PupilosScreen(viewModel: ClotyViewModel, contentPadding: PaddingValues) {
     val pupilos by viewModel.pupilos.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
 
+    ClotyPullRefresh(
+        refreshing = refreshing,
+        onRefresh = { viewModel.refrescarDatos() },
+        modifier = Modifier.fillMaxSize().padding(contentPadding)
+    ) {
     LazyColumn(
-        Modifier.fillMaxSize().padding(contentPadding).padding(horizontal = 16.dp),
+        Modifier.fillMaxSize().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item {
@@ -36,6 +43,7 @@ fun PupilosScreen(viewModel: ClotyViewModel, contentPadding: PaddingValues) {
         } else {
             items(pupilos) { pupilo -> PupiloCard(pupilo) }
         }
+    }
     }
 }
 

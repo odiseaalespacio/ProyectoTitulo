@@ -1,4 +1,4 @@
-﻿package com.example.cloty_apoderado.ui.screens
+package com.example.cloty_apoderado.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +28,7 @@ import com.example.cloty_apoderado.ui.ClotyViewModel
 import com.example.cloty_apoderado.ui.components.EmailTextField
 import com.example.cloty_apoderado.ui.components.MessageBanner
 import com.example.cloty_apoderado.ui.components.TelefonoChilenoTextField
+import com.example.cloty_apoderado.ui.components.UbicacionSelector
 import com.example.cloty_apoderado.ui.components.ValidationMessageBanner
 import com.example.cloty_apoderado.util.ChileValidators
 
@@ -38,7 +39,9 @@ fun CuentaScreen(viewModel: ClotyViewModel, contentPadding: PaddingValues, onLog
     var confirmar by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var telefono by rememberSaveable { mutableStateOf("") }
-    var direccion by rememberSaveable { mutableStateOf("") }
+    var codigoRegion by rememberSaveable { mutableStateOf<String?>(null) }
+    var codigoComuna by rememberSaveable { mutableStateOf<String?>(null) }
+    var calleNumero by rememberSaveable { mutableStateOf("") }
     var showValidation by rememberSaveable { mutableStateOf(false) }
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -52,7 +55,8 @@ fun CuentaScreen(viewModel: ClotyViewModel, contentPadding: PaddingValues, onLog
         apoderado?.let { a ->
             email = a.email.orEmpty()
             telefono = a.telefono.orEmpty()
-            direccion = a.direccion.orEmpty()
+            codigoComuna = a.codigoComuna
+            calleNumero = a.calleNumero.orEmpty()
         }
     }
 
@@ -87,7 +91,17 @@ fun CuentaScreen(viewModel: ClotyViewModel, contentPadding: PaddingValues, onLog
         }
         EmailTextField(email, { email = it; showValidation = false }, label = "Correo", showValidation = showValidation)
         TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
-        OutlinedTextField(direccion, { direccion = it }, label = { Text("DirecciÃ³n") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        UbicacionSelector(
+            codigoRegion = codigoRegion,
+            codigoComuna = codigoComuna,
+            calleNumero = calleNumero,
+            onRegionChange = { codigoRegion = it },
+            onComunaChange = { codigoComuna = it },
+            onCalleNumeroChange = { calleNumero = it },
+            listarRegiones = { viewModel.listarRegiones() },
+            listarComunas = { viewModel.listarComunas(it) },
+            resolverComuna = { viewModel.obtenerComuna(it) }
+        )
         ValidationMessageBanner(
             if (showValidation) {
                 ChileValidators.primerMensajeError(
@@ -106,23 +120,23 @@ fun CuentaScreen(viewModel: ClotyViewModel, contentPadding: PaddingValues, onLog
                     showValidation = true
                     return@Button
                 }
-                viewModel.actualizarMisDatos(email, telefono, direccion)
+                viewModel.actualizarMisDatos(email, telefono, codigoComuna, calleNumero)
             },
             enabled = !loading && apoderado != null,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Guardar mis datos") }
 
-        Text("Cambiar contraseÃ±a", style = MaterialTheme.typography.titleMedium)
+        Text("Cambiar contraseña", style = MaterialTheme.typography.titleMedium)
         OutlinedTextField(
             actual, { actual = it },
-            label = { Text("ContraseÃ±a actual") },
+            label = { Text("Contraseña actual") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             visualTransformation = PasswordVisualTransformation()
         )
         OutlinedTextField(
             nueva, { nueva = it },
-            label = { Text("Nueva contraseÃ±a") },
+            label = { Text("Nueva contraseña") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
@@ -147,9 +161,9 @@ fun CuentaScreen(viewModel: ClotyViewModel, contentPadding: PaddingValues, onLog
             },
             enabled = !loading && actual.isNotBlank() && nueva.length >= 4 && nueva == confirmar,
             modifier = Modifier.fillMaxWidth()
-        ) { Text("Guardar contraseÃ±a") }
+        ) { Text("Guardar contraseña") }
         Button(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
-            Text("Cerrar sesiÃ³n")
+            Text("Cerrar sesión")
         }
     }
 }

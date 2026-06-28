@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -39,7 +41,8 @@ public class ActivacionCodigoService {
 		}
 		String codigo = generarCodigo();
 		guardarCodigo(TipoEntidadActivacion.APODERADO, apoderado.getIdApoderado(), codigo);
-		emailService.enviarCodigoActivacionApoderado(apoderado, colegio, codigo, expiracionMinutos);
+		enviarCodigoTrasCommit(() -> emailService.enviarCodigoActivacionApoderado(
+				apoderado, colegio, codigo, expiracionMinutos));
 	}
 
 	@Transactional
@@ -53,7 +56,7 @@ public class ActivacionCodigoService {
 		}
 		String codigo = generarCodigo();
 		guardarCodigo(TipoEntidadActivacion.COLEGIO, colegio.getIdColegio(), codigo);
-		emailService.enviarCodigoActivacionColegio(colegio, codigo, expiracionMinutos);
+		enviarCodigoTrasCommit(() -> emailService.enviarCodigoActivacionColegio(colegio, codigo, expiracionMinutos));
 	}
 
 	@Transactional
@@ -141,5 +144,18 @@ public class ActivacionCodigoService {
 	private static String generarCodigo() {
 		int n = RANDOM.nextInt(1_000_000);
 		return String.format("%06d", n);
+	}
+
+	private void enviarCodigoTrasCommit(Runnable envio) {
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					envio.run();
+				}
+			});
+		} else {
+			envio.run();
+		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿package com.example.cloty_apoderado.data
+package com.example.cloty_apoderado.data
 
 import com.example.cloty_apoderado.data.api.ApiClient
 import com.example.cloty_apoderado.data.api.AuthMeResponse
@@ -64,4 +64,15 @@ class ClotyRepository(context: android.content.Context) {
 
     suspend fun actualizarApoderado(id: Int, req: com.example.cloty_apoderado.data.api.ApoderadoRequest) =
         api.actualizarApoderado(id, req)
+
+    suspend fun listarRegiones() = api.listarRegiones()
+
+    suspend fun listarComunas(codigoRegion: String) = api.listarComunas(codigoRegion)
+
+    suspend fun obtenerComuna(codigoComuna: String) =
+        try {
+            api.obtenerComuna(codigoComuna)
+        } catch (_: Exception) {
+            null
+        }
 }

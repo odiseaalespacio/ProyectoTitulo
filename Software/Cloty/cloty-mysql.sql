@@ -4,12 +4,14 @@
 -- tablas (Hibernate ddl-auto=update) y el super usuario inicial al arrancar.
 -- Usar este script solo para borrar todo y empezar de cero:
 --   mysql -u root -p < cloty-mysql.sql
+--   mysql -u root -p cloty < cloty-ubicacion-seed.sql
+-- En desarrollo, la API también carga regiones/comunas al arrancar si la tabla está vacía.
 -- =============================================================================
 
 CREATE DATABASE IF NOT EXISTS cloty
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
-<
+
 
 USE cloty;
 
@@ -25,6 +27,8 @@ DROP TABLE IF EXISTS colegio_apoderado;
 DROP TABLE IF EXISTS curso;
 DROP TABLE IF EXISTS apoderado;
 DROP TABLE IF EXISTS colegio;
+DROP TABLE IF EXISTS comuna;
+DROP TABLE IF EXISTS region;
 DROP TABLE IF EXISTS codigo_activacion;
 DROP TABLE IF EXISTS super_usuario;
 DROP TABLE IF EXISTS administrador;
@@ -85,6 +89,28 @@ CREATE TABLE administrador (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------------
+-- region (catálogo SUBDERE; ver cloty-ubicacion-seed.sql)
+-- ---------------------------------------------------------------------------
+CREATE TABLE region (
+  codigo_region  VARCHAR(2)   NOT NULL PRIMARY KEY,
+  nombre         VARCHAR(100) NOT NULL,
+  UNIQUE KEY uq_region_nombre (nombre)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------------
+-- comuna
+-- ---------------------------------------------------------------------------
+CREATE TABLE comuna (
+  codigo_comuna  VARCHAR(5)   NOT NULL PRIMARY KEY,
+  codigo_region  VARCHAR(2)   NOT NULL,
+  nombre         VARCHAR(100) NOT NULL,
+  UNIQUE KEY uq_comuna_region_nombre (codigo_region, nombre),
+  CONSTRAINT fk_comuna_region
+    FOREIGN KEY (codigo_region) REFERENCES region (codigo_region)
+    ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------------
 -- colegio (puede existir sin cuenta de acceso; email para activación)
 -- ---------------------------------------------------------------------------
 CREATE TABLE colegio (
@@ -94,13 +120,17 @@ CREATE TABLE colegio (
   nombre         VARCHAR(150) NOT NULL,
   email          VARCHAR(150) NULL,
   telefono       VARCHAR(20)  NULL,
-  direccion      VARCHAR(255) NULL,
+  codigo_comuna  VARCHAR(5)   NULL,
+  calle_numero   VARCHAR(255) NULL,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_colegio_id_usuario (id_usuario),
   UNIQUE KEY uq_colegio_rut (rut),
   CONSTRAINT fk_colegio_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
-    ON DELETE SET NULL ON UPDATE CASCADE
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_colegio_comuna
+    FOREIGN KEY (codigo_comuna) REFERENCES comuna (codigo_comuna)
+    ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------------
@@ -114,13 +144,17 @@ CREATE TABLE apoderado (
   apellidos      VARCHAR(100) NOT NULL,
   email          VARCHAR(150) NULL,
   telefono       VARCHAR(20)  NULL,
-  direccion      VARCHAR(255) NULL,
+  codigo_comuna  VARCHAR(5)   NULL,
+  calle_numero   VARCHAR(255) NULL,
   fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_apoderado_id_usuario (id_usuario),
   UNIQUE KEY uq_apoderado_rut (rut),
   CONSTRAINT fk_apoderado_usuario
     FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario)
-    ON DELETE SET NULL ON UPDATE CASCADE
+    ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT fk_apoderado_comuna
+    FOREIGN KEY (codigo_comuna) REFERENCES comuna (codigo_comuna)
+    ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------------

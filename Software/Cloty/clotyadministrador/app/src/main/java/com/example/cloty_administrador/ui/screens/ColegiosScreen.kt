@@ -1,4 +1,4 @@
-﻿package com.example.cloty_administrador.ui.screens
+package com.example.cloty_administrador.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,10 +38,12 @@ import androidx.compose.ui.unit.dp
 import com.example.cloty_administrador.data.api.Colegio
 import com.example.cloty_administrador.data.api.ColegioRequest
 import com.example.cloty_administrador.ui.ClotyViewModel
+import com.example.cloty_administrador.ui.components.ClotyPullRefresh
 import com.example.cloty_administrador.ui.components.EmailTextField
 import com.example.cloty_administrador.ui.components.MessageBanner
 import com.example.cloty_administrador.ui.components.RutTextField
 import com.example.cloty_administrador.ui.components.TelefonoChilenoTextField
+import com.example.cloty_administrador.ui.components.UbicacionSelector
 import com.example.cloty_administrador.ui.components.ValidationMessageBanner
 import com.example.cloty_administrador.util.ChileValidators
 
@@ -50,6 +52,7 @@ import com.example.cloty_administrador.util.ChileValidators
 fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     val lista by viewModel.colegios.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var showDialog by rememberSaveable { mutableStateOf(false) }
@@ -78,17 +81,22 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             }
         }
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+        ClotyPullRefresh(
+            refreshing = refreshing,
+            onRefresh = { viewModel.refrescarColegios() },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+        Column(Modifier.fillMaxSize().padding(16.dp)) {
             MessageBanner(error, true)
             MessageBanner(message, false, Modifier.padding(top = 8.dp))
             if (lista.isEmpty() && !loading && error == null) {
                 Text("No hay colegios registrados.")
             }
-            LazyColumn {
+            LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                 items(lista) { c ->
                     ListItem(
                         headlineContent = { Text(c.nombre) },
-                        supportingContent = { Text("RUT ${c.rut} Â· ID ${c.idColegio}") },
+                        supportingContent = { Text("RUT ${c.rut} · ID ${c.idColegio}") },
                         trailingContent = {
                             Row {
                                 IconButton(onClick = {
@@ -106,6 +114,7 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                 }
             }
         }
+        }
     }
 
     if (showDialog) {
@@ -114,7 +123,9 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         var nombre by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.nombre ?: "") }
         var email by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.email ?: "") }
         var telefono by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.telefono ?: "") }
-        var direccion by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.direccion ?: "") }
+        var codigoRegion by rememberSaveable(editing?.idColegio) { mutableStateOf<String?>(null) }
+        var codigoComuna by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.codigoComuna) }
+        var calleNumero by rememberSaveable(editing?.idColegio) { mutableStateOf(editing?.calleNumero ?: "") }
         var showValidation by rememberSaveable(editing?.idColegio) { mutableStateOf(false) }
         AlertDialog(
             onDismissRequest = { showDialog = false },
@@ -125,7 +136,17 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                     OutlinedTextField(nombre, { nombre = it; showValidation = false }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     EmailTextField(email, { email = it; showValidation = false }, label = "Correo", obligatorio = true, showValidation = showValidation)
                     TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
-                    OutlinedTextField(direccion, { direccion = it }, label = { Text("DirecciÃ³n") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    UbicacionSelector(
+                        codigoRegion = codigoRegion,
+                        codigoComuna = codigoComuna,
+                        calleNumero = calleNumero,
+                        onRegionChange = { codigoRegion = it },
+                        onComunaChange = { codigoComuna = it },
+                        onCalleNumeroChange = { calleNumero = it },
+                        listarRegiones = { viewModel.listarRegiones() },
+                        listarComunas = { viewModel.listarComunas(it) },
+                        resolverComuna = { viewModel.obtenerComuna(it) }
+                    )
                     ValidationMessageBanner(
                         if (showValidation) {
                             ChileValidators.primerMensajeError(
@@ -155,7 +176,8 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                             nombre = nombre.trim(),
                             email = email.trim(),
                             telefono = telefono.trim().ifBlank { null },
-                            direccion = direccion.trim().ifBlank { null }
+                            codigoComuna = codigoComuna?.trim()?.ifBlank { null },
+                            calleNumero = calleNumero.trim().ifBlank { null }
                         )
                         if (editing != null) {
                             viewModel.actualizarColegio(editing.idColegio, req)
@@ -175,7 +197,7 @@ fun ColegiosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
             title = { Text("Eliminar colegio") },
-            text = { Text("Â¿Eliminar ${c.nombre}? Solo es posible si no tiene datos vinculados.") },
+            text = { Text("¿Eliminar ${c.nombre}? Solo es posible si no tiene datos vinculados.") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarColegio(c.idColegio)

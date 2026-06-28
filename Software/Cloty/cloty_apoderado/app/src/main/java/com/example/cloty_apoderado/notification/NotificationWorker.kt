@@ -1,4 +1,4 @@
-﻿package com.example.cloty_apoderado.notification
+package com.example.cloty_apoderado.notification
 
 
 import android.content.Context
@@ -43,7 +43,7 @@ class NotificationWorker(
                         applicationContext,
                         n.idNotificacion ?: 0,
                         n.titulo ?: "Cloty",
-                        n.mensaje ?: "Tienes una nueva notificaciÃ³n"
+                        n.mensaje ?: "Tienes una nueva notificación"
                     )
                 }
 

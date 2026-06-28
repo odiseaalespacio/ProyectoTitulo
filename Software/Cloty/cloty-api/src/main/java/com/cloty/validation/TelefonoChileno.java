@@ -1,4 +1,4 @@
-﻿package com.cloty.validation;
+package com.cloty.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TelefonoChileno {
 
-	String message() default "TelÃ©fono chileno invÃ¡lido (mÃ³vil: 9 dÃ­gitos comenzando en 9)";
+	String message() default "Teléfono chileno inválido (móvil: 9 dígitos comenzando en 9)";
 
 	Class<?>[] groups() default {};
 

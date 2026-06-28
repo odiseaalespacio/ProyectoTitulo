@@ -1,4 +1,4 @@
-﻿package com.example.cloty_administrador.data.api
+package com.example.cloty_administrador.data.api
 
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -143,4 +143,13 @@ interface ClotyApi {
         @Path("idColegio") idColegio: Int,
         @Part archivo: MultipartBody.Part
     ): CargaMasivaResult
+
+    @GET("api/ubicacion/regiones")
+    suspend fun listarRegiones(): List<Region>
+
+    @GET("api/ubicacion/regiones/{codigoRegion}/comunas")
+    suspend fun listarComunas(@Path("codigoRegion") codigoRegion: String): List<Comuna>
+
+    @GET("api/ubicacion/comunas/{codigoComuna}")
+    suspend fun obtenerComuna(@Path("codigoComuna") codigoComuna: String): Comuna
 }

@@ -1,4 +1,4 @@
-﻿package com.cloty.validation;
+package com.cloty.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

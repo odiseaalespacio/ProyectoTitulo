@@ -1,4 +1,4 @@
-﻿package com.cloty.service;
+package com.cloty.service;
 
 import com.cloty.domain.Apoderado;
 import com.cloty.dto.ApoderadoRequest;
@@ -26,6 +26,7 @@ public class ApoderadoService {
 	private final ColegioRepository colegioRepository;
 	private final UsuarioRepository usuarioRepository;
 	private final CascadeEliminacionService cascadeEliminacionService;
+	private final UbicacionService ubicacionService;
 
 	@Transactional(readOnly = true)
 	public List<Apoderado> listar() {
@@ -59,13 +60,14 @@ public class ApoderadoService {
 		if (req.idUsuario() != null) {
 			asegurarUsuario(req.idUsuario());
 			apoderadoRepository.findByIdUsuario(req.idUsuario()).ifPresent(a -> {
-				throw new ConflictException("El usuario ya estÃ¡ asociado a un apoderado");
+				throw new ConflictException("El usuario ya está asociado a un apoderado");
 			});
 		}
 		String rutNorm = ChileValidacion.formatearRutConGuion(req.rut());
 		if (apoderadoRepository.existsByRut(rutNorm)) {
-			throw new ConflictException("El RUT ya estÃ¡ registrado");
+			throw new ConflictException("El RUT ya está registrado");
 		}
+		ubicacionService.validarComuna(req.codigoComuna());
 		Apoderado a = Apoderado.builder()
 				.idUsuario(req.idUsuario())
 				.rut(rutNorm)
@@ -73,7 +75,8 @@ public class ApoderadoService {
 				.apellidos(req.apellidos())
 				.email(emailObligatorioONull(req.email()))
 				.telefono(blancoANull(req.telefono()))
-				.direccion(blancoANull(req.direccion()))
+				.codigoComuna(blancoANull(req.codigoComuna()))
+				.calleNumero(blancoANull(req.calleNumero()))
 				.build();
 		return apoderadoRepository.save(a);
 	}
@@ -86,7 +89,7 @@ public class ApoderadoService {
 				asegurarUsuario(req.idUsuario());
 				apoderadoRepository.findByIdUsuario(req.idUsuario()).ifPresent(otro -> {
 					if (!otro.getIdApoderado().equals(id)) {
-						throw new ConflictException("El usuario ya estÃ¡ asociado a otro apoderado");
+						throw new ConflictException("El usuario ya está asociado a otro apoderado");
 					}
 				});
 				a.setIdUsuario(req.idUsuario());
@@ -94,14 +97,16 @@ public class ApoderadoService {
 		}
 		String rutNorm = ChileValidacion.formatearRutConGuion(req.rut());
 		if (!rutNorm.equals(a.getRut()) && apoderadoRepository.existsByRut(rutNorm)) {
-			throw new ConflictException("El RUT ya estÃ¡ registrado");
+			throw new ConflictException("El RUT ya está registrado");
 		}
 		a.setRut(rutNorm);
 		a.setNombres(req.nombres());
 		a.setApellidos(req.apellidos());
 		a.setEmail(emailObligatorioONull(req.email()));
 		a.setTelefono(blancoANull(req.telefono()));
-		a.setDireccion(blancoANull(req.direccion()));
+		ubicacionService.validarComuna(req.codigoComuna());
+		a.setCodigoComuna(blancoANull(req.codigoComuna()));
+		a.setCalleNumero(blancoANull(req.calleNumero()));
 		return apoderadoRepository.save(a);
 	}
 

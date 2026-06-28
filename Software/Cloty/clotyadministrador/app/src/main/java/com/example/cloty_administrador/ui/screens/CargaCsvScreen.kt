@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.cloty_administrador.ui.ClotyViewModel
+import com.example.cloty_administrador.ui.components.ClotyPullRefresh
 import com.example.cloty_administrador.ui.components.MessageBanner
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +39,7 @@ fun CargaCsvScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     val colegios by viewModel.colegios.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
     val ultimaCarga by viewModel.ultimaCarga.collectAsState()
     var idColegio by rememberSaveable { mutableIntStateOf(0) }
 
@@ -62,17 +64,22 @@ fun CargaCsvScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             )
         }
     ) { padding ->
+        ClotyPullRefresh(
+            refreshing = refreshing,
+            onRefresh = { viewModel.refrescarColegios() },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ColegioSelector(colegios, idColegio) { idColegio = it }
             Text(
-                "1) Apoderados: rut, nombres, apellidos, email, telefono, direccion\n" +
+                "1) Apoderados: rut, nombres, apellidos, email, telefono, codigo_comuna, calle_numero\n" +
+                "   (calle_numero también acepta la columna legacy direccion)\n" +
                     "2) Alumnos: rut_alumno, nombres, apellidos, nivel, rut_apoderado, estado\n" +
                     "   (nivel: 1° Básico a 8° Básico, 1° Medio a 4° Medio; crea el curso si no existe)",
                 style = MaterialTheme.typography.bodySmall
@@ -92,6 +99,7 @@ fun CargaCsvScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             ultimaCarga?.mensajes?.takeLast(15)?.forEach { linea ->
                 Text("• $linea", style = MaterialTheme.typography.bodySmall)
             }
+        }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿package com.example.cloty_administrador.ui.screens
+package com.example.cloty_administrador.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -63,11 +63,11 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(if (esSuperUsuario) "Panel Cloty â€” Super" else "Panel Cloty")
+                    Text(if (esSuperUsuario) "Panel Cloty — Super" else "Panel Cloty")
                 },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesiÃ³n")
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión")
                     }
                 }
             )

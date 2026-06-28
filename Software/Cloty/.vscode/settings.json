@@ -1,0 +1,19 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.jdt.ls.lombokSupport.enabled": true,
+  "java.import.maven.enabled": true,
+  "java.import.gradle.enabled": true,
+  "java.import.gradle.wrapper.enabled": true,
+  "java.import.gradle.version": "8.13",
+  "java.import.gradle.home": null,
+  "java.maven.downloadSources": true,
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/.metadata/**",
+    "**/archetype-resources/**",
+    "**/target/**",
+    "**/build/**",
+    "**/.gradle/**"
+  ]
+}

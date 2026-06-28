@@ -47,7 +47,11 @@ public class SecurityConfig {
 								"/api/auth/solicitar-recuperacion-contrasena",
 								"/api/auth/restablecer-contrasena",
 								"/api/auth/activar-cuenta-apoderado",
-								"/api/auth/activar-cuenta-colegio"
+								"/api/auth/activar-cuenta-colegio",
+								"/api/ubicacion/**",
+								"/swagger-ui.html",
+								"/swagger-ui/**",
+								"/v3/api-docs/**"
 						).permitAll()
 						.anyRequest().authenticated())
 				.exceptionHandling(e -> e

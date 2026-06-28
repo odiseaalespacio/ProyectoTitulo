@@ -1,4 +1,4 @@
-﻿package com.cloty.validation;
+package com.cloty.validation;
 
 
 import java.util.regex.Pattern;
@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 /**
 
- * Validaciones de formato chileno (RUT, telÃ©fono, correo).
+ * Validaciones de formato chileno (RUT, teléfono, correo).
 
  */
 

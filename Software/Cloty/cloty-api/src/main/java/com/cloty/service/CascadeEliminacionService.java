@@ -1,5 +1,6 @@
 package com.cloty.service;
 
+import com.cloty.domain.Alumno;
 import com.cloty.domain.Apoderado;
 import com.cloty.domain.Colegio;
 import com.cloty.domain.TipoEntidadActivacion;
@@ -19,7 +20,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +51,10 @@ public class CascadeEliminacionService {
 				.distinct()
 				.toList();
 
+		Set<Integer> apoderadosARevisar = new HashSet<>(apoderadosVinculados);
+		alumnoRepository.findByIdColegioOrderByApellidosAscNombresAsc(idColegio)
+				.forEach(a -> apoderadosARevisar.add(a.getIdApoderado()));
+
 		alumnoRepository.findByIdColegioOrderByApellidosAscNombresAsc(idColegio)
 				.forEach(a -> eliminarAlumnoCompleto(a.getIdAlumno()));
 
@@ -64,7 +71,7 @@ public class CascadeEliminacionService {
 			eliminarUsuarioSiExiste(idUsuarioColegio);
 		}
 
-		apoderadosVinculados.forEach(this::eliminarApoderadoSiHuerfano);
+		apoderadosARevisar.forEach(this::eliminarApoderadoSiHuerfano);
 	}
 
 	@Transactional
@@ -107,9 +114,12 @@ public class CascadeEliminacionService {
 		if (!alumnoRepository.existsById(idAlumno)) {
 			throw new ResourceNotFoundException("Alumno no encontrado: " + idAlumno);
 		}
+		Alumno alumno = alumnoRepository.findById(idAlumno).orElseThrow();
+		Integer idApoderado = alumno.getIdApoderado();
 		tarjetaRepository.findByIdAlumnoOrderByFechaAsignacionDesc(idAlumno)
 				.forEach(t -> eliminarTarjetaCompleta(t.getIdTarjeta()));
 		alumnoRepository.deleteById(idAlumno);
+		eliminarApoderadoSiHuerfano(idApoderado);
 	}
 
 	@Transactional
@@ -158,6 +168,11 @@ public class CascadeEliminacionService {
 		usuarioRepository.deleteById(idUsuario);
 	}
 
+	@Transactional
+	public void revisarApoderadoHuerfano(Integer idApoderado) {
+		eliminarApoderadoSiHuerfano(idApoderado);
+	}
+
 	private void eliminarApoderadoSiHuerfano(Integer idApoderado) {
 		if (!apoderadoRepository.existsById(idApoderado)) {
 			return;
@@ -182,6 +197,7 @@ public class CascadeEliminacionService {
 
 	private void eliminarUsuarioSiExiste(Integer idUsuario) {
 		if (idUsuario != null && usuarioRepository.existsById(idUsuario)) {
+			superUsuarioRepository.findByIdUsuario(idUsuario).ifPresent(superUsuarioRepository::delete);
 			eliminarCodigosRecuperacionUsuario(idUsuario);
 			usuarioRepository.deleteById(idUsuario);
 		}

@@ -1,4 +1,4 @@
-﻿package com.example.cloty_colegio.data
+package com.example.cloty_colegio.data
 
 import com.example.cloty_colegio.data.api.ActivarCuentaColegioRequest
 import com.example.cloty_colegio.data.api.SolicitarCodigoActivacionRequest
@@ -61,6 +61,20 @@ class ClotyRepository(context: android.content.Context) {
 
     suspend fun dashboard(): ColegioDashboard = api.dashboard()
 
+    suspend fun dashboardComunidad() = api.dashboardComunidad()
+
+    suspend fun dashboardTarjetas() = api.dashboardTarjetas()
+
+    suspend fun dashboardPrendas() = api.dashboardPrendas()
+
+    suspend fun dashboardNotificaciones() = api.dashboardNotificaciones()
+
+    suspend fun dashboardCursos() = api.dashboardCursos()
+
+    suspend fun dashboardCurso(idCurso: Int) = api.dashboardCurso(idCurso)
+
+    suspend fun dashboardActividad() = api.dashboardActividad()
+
     suspend fun cambiarContrasena(actual: String, nueva: String) =
         api.cambiarContrasena(
             com.example.cloty_colegio.data.api.CambiarContrasenaRequest(actual, nueva)
@@ -98,4 +112,15 @@ class ClotyRepository(context: android.content.Context) {
     suspend fun actualizarCurso(id: Int, req: CursoRequest) = api.actualizarCurso(id, req)
 
     suspend fun eliminarCurso(id: Int) = api.eliminarCurso(id)
+
+    suspend fun listarRegiones() = api.listarRegiones()
+
+    suspend fun listarComunas(codigoRegion: String) = api.listarComunas(codigoRegion)
+
+    suspend fun obtenerComuna(codigoComuna: String) =
+        try {
+            api.obtenerComuna(codigoComuna)
+        } catch (_: Exception) {
+            null
+        }
 }

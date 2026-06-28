@@ -1,4 +1,4 @@
-﻿package com.example.cloty_apoderado.data.api
+package com.example.cloty_apoderado.data.api
 
 data class LoginRequest(val identificador: String, val password: String)
 
@@ -24,7 +24,8 @@ data class ApoderadoRequest(
     val apellidos: String,
     val email: String? = null,
     val telefono: String? = null,
-    val direccion: String? = null
+    val codigoComuna: String? = null,
+    val calleNumero: String? = null
 )
 
 data class Apoderado(
@@ -35,7 +36,8 @@ data class Apoderado(
     val apellidos: String,
     val email: String?,
     val telefono: String?,
-    val direccion: String?
+    val codigoComuna: String?,
+    val calleNumero: String?
 )
 
 data class SolicitarCodigoActivacionRequest(val rut: String)
@@ -83,4 +85,15 @@ data class Notificacion(
     val estado: String?,
     val leida: Boolean?,
     val fechaEnvio: String?
+)
+
+data class Region(
+    val codigoRegion: String,
+    val nombre: String
+)
+
+data class Comuna(
+    val codigoComuna: String,
+    val codigoRegion: String,
+    val nombre: String
 )

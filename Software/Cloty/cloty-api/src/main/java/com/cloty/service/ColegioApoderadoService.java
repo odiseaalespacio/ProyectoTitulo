@@ -1,4 +1,4 @@
-﻿package com.cloty.service;
+package com.cloty.service;
 
 import com.cloty.domain.ColegioApoderado;
 import com.cloty.dto.ColegioApoderadoRequest;
@@ -21,6 +21,7 @@ public class ColegioApoderadoService {
 	private final ColegioRepository colegioRepository;
 	private final ApoderadoRepository apoderadoRepository;
 	private final EmailService emailService;
+	private final CascadeEliminacionService cascadeEliminacionService;
 
 	@Transactional(readOnly = true)
 	public List<ColegioApoderado> listarTodos() {
@@ -46,7 +47,7 @@ public class ColegioApoderadoService {
 	@Transactional(readOnly = true)
 	public ColegioApoderado obtener(Integer id) {
 		return colegioApoderadoRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("AsociaciÃ³n no encontrada: " + id));
+				.orElseThrow(() -> new ResourceNotFoundException("Asociación no encontrada: " + id));
 	}
 
 	@Transactional
@@ -58,7 +59,7 @@ public class ColegioApoderadoService {
 			throw new ResourceNotFoundException("Apoderado no encontrado: " + req.idApoderado());
 		}
 		if (colegioApoderadoRepository.existsByIdColegioAndIdApoderado(req.idColegio(), req.idApoderado())) {
-			throw new ConflictException("La asociaciÃ³n colegio-apoderado ya existe");
+			throw new ConflictException("La asociación colegio-apoderado ya existe");
 		}
 		ColegioApoderado ca = ColegioApoderado.builder()
 				.idColegio(req.idColegio())
@@ -73,9 +74,10 @@ public class ColegioApoderadoService {
 
 	@Transactional
 	public void eliminar(Integer id) {
-		if (!colegioApoderadoRepository.existsById(id)) {
-			throw new ResourceNotFoundException("AsociaciÃ³n no encontrada: " + id);
-		}
+		ColegioApoderado ca = colegioApoderadoRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Asociación no encontrada: " + id));
+		Integer idApoderado = ca.getIdApoderado();
 		colegioApoderadoRepository.deleteById(id);
+		cascadeEliminacionService.revisarApoderadoHuerfano(idApoderado);
 	}
 }

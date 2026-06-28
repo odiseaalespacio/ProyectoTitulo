@@ -1,4 +1,4 @@
-﻿package com.example.cloty_administrador.ui
+package com.example.cloty_administrador.ui
 
 import android.app.Application
 import android.net.Uri
@@ -50,6 +50,9 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
+    private val _refreshing = MutableStateFlow(false)
+    val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
@@ -92,7 +95,7 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun cambiarContrasena(actual: String, nueva: String) = launchTask {
         repo.cambiarContrasena(actual, nueva)
-        _message.value = "ContraseÃ±a actualizada correctamente"
+        _message.value = "Contraseña actualizada correctamente"
     }
 
     fun clearMessages() {
@@ -111,13 +114,13 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
     fun solicitarRecuperacionContrasena(rut: String, onExito: () -> Unit) = launchTask {
         val resp = repo.solicitarRecuperacionContrasena(rut)
         _correoRecuperacion.value = resp.correoEnmascarado
-        _message.value = resp.mensaje ?: "CÃ³digo enviado al correo registrado"
+        _message.value = resp.mensaje ?: "Código enviado al correo registrado"
         onExito()
     }
 
     fun restablecerContrasena(rut: String, codigo: String, password: String, onExito: () -> Unit) = launchTask {
         repo.restablecerContrasena(rut, codigo, password)
-        _message.value = "ContraseÃ±a actualizada. Ya puede iniciar sesiÃ³n."
+        _message.value = "Contraseña actualizada. Ya puede iniciar sesión."
         onExito()
     }
 
@@ -125,9 +128,9 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         val rol = repo.login(identificador, password)
         _rolActual.value = rol
         _message.value = if (rol == TokenStore.ROL_SUPER_USUARIO) {
-            "SesiÃ³n iniciada (super usuario)"
+            "Sesión iniciada (super usuario)"
         } else {
-            "SesiÃ³n iniciada"
+            "Sesión iniciada"
         }
     }
 
@@ -142,7 +145,11 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _alumnosPendientes.value = emptyList()
     }
 
-    fun cargarSuperUsuarios() = launchTask {
+    fun cargarSuperUsuarios() = launchTask { cargarSuperUsuariosInternal() }
+
+    fun refrescarSuperUsuarios() = launchRefresh { cargarSuperUsuariosInternal() }
+
+    private suspend fun cargarSuperUsuariosInternal() {
         val usuarios = repo.listarUsuarios()
         _usuariosPorId.value = usuarios.associateBy { it.idUsuario }
         _superUsuarios.value = repo.listarSuperUsuarios()
@@ -180,7 +187,11 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         cargarSuperUsuarios()
     }
 
-    fun cargarAdministradores() = launchTask {
+    fun cargarAdministradores() = launchTask { cargarAdministradoresInternal() }
+
+    fun refrescarAdministradores() = launchRefresh { cargarAdministradoresInternal() }
+
+    private suspend fun cargarAdministradoresInternal() {
         val usuarios = repo.listarUsuarios()
         _usuariosPorId.value = usuarios.associateBy { it.idUsuario }
         _administradores.value = repo.listarAdministradores()
@@ -217,8 +228,38 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         cargarAdministradores()
     }
 
-    fun cargarColegios() = launchTask {
+    fun cargarColegios() = launchTask { cargarColegiosInternal() }
+
+    fun refrescarColegios() = launchRefresh { cargarColegiosInternal() }
+
+    private suspend fun cargarColegiosInternal() {
         _colegios.value = repo.listarColegios()
+    }
+
+    fun refrescarDatosColegio(idColegio: Int) = launchRefresh {
+        cargarColegiosInternal()
+        if (idColegio > 0) {
+            _apoderadosColegio.value = repo.listarApoderadosPorColegio(idColegio)
+            _alumnosColegio.value = repo.listarAlumnosPorColegio(idColegio)
+            _cursos.value = repo.listarCursos(idColegio)
+        }
+    }
+
+    fun refrescarCursosColegio(idColegio: Int) = launchRefresh {
+        cargarColegiosInternal()
+        if (idColegio > 0) {
+            _cursos.value = repo.listarCursos(idColegio)
+        }
+    }
+
+    fun refrescarTarjetasNfc(idColegio: Int, idCurso: Int, recargarLote: Boolean) = launchRefresh {
+        cargarColegiosInternal()
+        if (idColegio > 0) {
+            _cursos.value = repo.listarCursos(idColegio)
+        }
+        if (recargarLote && idCurso > 0) {
+            prepararCargaNfcInternal(idCurso)
+        }
     }
 
     fun crearColegio(req: ColegioRequest) = launchTask {
@@ -322,7 +363,9 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
         _message.value = resumenCarga(_ultimaCarga.value)
     }
 
-    fun prepararCargaNfc(idCurso: Int) = launchTask {
+    fun prepararCargaNfc(idCurso: Int) = launchTask { prepararCargaNfcInternal(idCurso) }
+
+    private suspend fun prepararCargaNfcInternal(idCurso: Int) {
         val alumnos = repo.listarAlumnosPorCurso(idCurso)
         val pendientes = alumnos.filter { repo.contarTarjetasAlumno(it.idAlumno) < TARJETAS_POR_ALUMNO }
         _alumnosPendientes.value = pendientes
@@ -347,11 +390,11 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
             _alumnosPendientes.value = restantes
             val siguiente = restantes.firstOrNull()
             _tarjetasDelActual.value = if (siguiente != null) repo.contarTarjetasAlumno(siguiente.idAlumno) else 0
-            _message.value = "Tarjeta $TARJETAS_POR_ALUMNO/$TARJETAS_POR_ALUMNO $uid â†’ ${alumno.nombres} ${alumno.apellidos}. " +
+            _message.value = "Tarjeta $TARJETAS_POR_ALUMNO/$TARJETAS_POR_ALUMNO $uid → ${alumno.nombres} ${alumno.apellidos}. " +
                 if (restantes.isEmpty()) "Lote completado." else "Siguiente: ${restantes.first().nombres}"
         } else {
             _tarjetasDelActual.value = nuevas
-            _message.value = "Tarjeta $nuevas/$TARJETAS_POR_ALUMNO $uid â†’ ${alumno.nombres} ${alumno.apellidos}. Acerque la siguiente tarjeta."
+            _message.value = "Tarjeta $nuevas/$TARJETAS_POR_ALUMNO $uid → ${alumno.nombres} ${alumno.apellidos}. Acerque la siguiente tarjeta."
         }
     }
 
@@ -373,4 +416,25 @@ class ClotyViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
     }
+
+    private fun launchRefresh(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            if (_refreshing.value) return@launch
+            _refreshing.value = true
+            _error.value = null
+            try {
+                block()
+            } catch (e: Exception) {
+                _error.value = ApiErrorParser.mensaje(e)
+            } finally {
+                _refreshing.value = false
+            }
+        }
+    }
+
+    suspend fun listarRegiones() = repo.listarRegiones()
+
+    suspend fun listarComunas(codigoRegion: String) = repo.listarComunas(codigoRegion)
+
+    suspend fun obtenerComuna(codigoComuna: String) = repo.obtenerComuna(codigoComuna)
 }

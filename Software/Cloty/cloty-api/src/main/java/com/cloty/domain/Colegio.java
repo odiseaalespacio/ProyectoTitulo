@@ -44,8 +44,13 @@ public class Colegio {
 	@Column(name = "telefono", length = 20)
 	private String telefono;
 
-	@Column(name = "direccion", length = 255)
-	private String direccion;
+	/** Código CUT de comuna (5 dígitos, catálogo SUBDERE). */
+	@Column(name = "codigo_comuna", length = 5)
+	private String codigoComuna;
+
+	/** Calle, número, depto u otros detalles de la dirección. */
+	@Column(name = "calle_numero", length = 255)
+	private String calleNumero;
 
 	@Column(name = "fecha_creacion", insertable = false, updatable = false)
 	private LocalDateTime fechaCreacion;

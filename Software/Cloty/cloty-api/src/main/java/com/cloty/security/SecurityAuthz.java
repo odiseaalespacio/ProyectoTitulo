@@ -1,4 +1,4 @@
-﻿package com.cloty.security;
+package com.cloty.security;
 
 import com.cloty.domain.Alumno;
 import com.cloty.domain.RolUsuario;

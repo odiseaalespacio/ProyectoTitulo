@@ -1,4 +1,4 @@
-﻿package com.example.cloty_colegio.ui.screens
+package com.example.cloty_colegio.ui.screens
 
 
 import androidx.compose.foundation.layout.Arrangement
@@ -48,10 +48,12 @@ import com.example.cloty_colegio.data.api.Apoderado
 import com.example.cloty_colegio.data.api.ApoderadoRequest
 import com.example.cloty_colegio.data.api.Curso
 import com.example.cloty_colegio.ui.ClotyViewModel
+import com.example.cloty_colegio.ui.components.ClotyPullRefresh
 import com.example.cloty_colegio.ui.components.EmailTextField
 import com.example.cloty_colegio.ui.components.MessageBanner
 import com.example.cloty_colegio.ui.components.RutTextField
 import com.example.cloty_colegio.ui.components.TelefonoChilenoTextField
+import com.example.cloty_colegio.ui.components.UbicacionSelector
 import com.example.cloty_colegio.ui.components.ValidationMessageBanner
 import com.example.cloty_colegio.util.ChileValidators
 
@@ -67,6 +69,7 @@ fun GestionPersonasScreen(
     val alumnos by viewModel.alumnos.collectAsState()
     val cursos by viewModel.cursos.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -107,8 +110,13 @@ fun GestionPersonasScreen(
             }
         }
     ) { padding ->
+        ClotyPullRefresh(
+            refreshing = refreshing,
+            onRefresh = { viewModel.refrescarGestion() },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
         Column(
-            Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             TabRow(selectedTabIndex = tab) {
@@ -121,7 +129,7 @@ fun GestionPersonasScreen(
                 if (apoderados.isEmpty() && !loading && error == null) {
                     Text("No hay apoderados registrados.")
                 }
-                LazyColumn {
+                LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(apoderados) { a ->
                         ListItem(
                             headlineContent = { Text("${a.nombres} ${a.apellidos}") },
@@ -146,12 +154,12 @@ fun GestionPersonasScreen(
                 if (alumnos.isEmpty() && !loading && error == null) {
                     Text("No hay alumnos registrados.")
                 }
-                LazyColumn {
+                LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(alumnos) { al ->
                         val cursoNombre = cursos.find { it.idCurso == al.idCurso }?.nombre ?: "Curso ${al.idCurso}"
                         ListItem(
                             headlineContent = { Text("${al.nombres} ${al.apellidos}") },
-                            supportingContent = { Text("RUT ${al.rut} Â· $cursoNombre") },
+                            supportingContent = { Text("RUT ${al.rut} · $cursoNombre") },
                             trailingContent = {
                                 Row {
                                     IconButton(onClick = {
@@ -170,6 +178,7 @@ fun GestionPersonasScreen(
                 }
             }
         }
+        }
     }
 
     val colegioId = idColegio
@@ -178,6 +187,9 @@ fun GestionPersonasScreen(
             apoderado = editApoderado,
             loading = loading,
             onDismiss = { showApoderadoDialog = false },
+            listarRegiones = { viewModel.listarRegiones() },
+            listarComunas = { viewModel.listarComunas(it) },
+            resolverComuna = { viewModel.obtenerComuna(it) },
             onSave = { req ->
                 val edit = editApoderado
                 if (edit != null) {
@@ -214,7 +226,7 @@ fun GestionPersonasScreen(
         AlertDialog(
             onDismissRequest = { confirmDeleteApoderado = null },
             title = { Text("Eliminar apoderado") },
-            text = { Text("Â¿Eliminar a ${a.nombres} ${a.apellidos}? No se puede deshacer.") },
+            text = { Text("¿Eliminar a ${a.nombres} ${a.apellidos}? No se puede deshacer.") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarApoderado(a.idApoderado)
@@ -229,7 +241,7 @@ fun GestionPersonasScreen(
         AlertDialog(
             onDismissRequest = { confirmDeleteAlumno = null },
             title = { Text("Eliminar alumno") },
-            text = { Text("Â¿Eliminar a ${al.nombres} ${al.apellidos}?") },
+            text = { Text("¿Eliminar a ${al.nombres} ${al.apellidos}?") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarAlumno(al.idAlumno)
@@ -246,6 +258,9 @@ private fun ApoderadoFormDialog(
     apoderado: Apoderado?,
     loading: Boolean,
     onDismiss: () -> Unit,
+    listarRegiones: suspend () -> List<com.example.cloty_colegio.data.api.Region>,
+    listarComunas: suspend (String) -> List<com.example.cloty_colegio.data.api.Comuna>,
+    resolverComuna: suspend (String) -> com.example.cloty_colegio.data.api.Comuna?,
     onSave: (ApoderadoRequest) -> Unit
 ) {
     var rut by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.rut ?: "") }
@@ -253,7 +268,9 @@ private fun ApoderadoFormDialog(
     var apellidos by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.apellidos ?: "") }
     var email by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.email ?: "") }
     var telefono by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.telefono ?: "") }
-    var direccion by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.direccion ?: "") }
+    var codigoRegion by rememberSaveable(apoderado?.idApoderado) { mutableStateOf<String?>(null) }
+    var codigoComuna by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.codigoComuna) }
+    var calleNumero by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.calleNumero ?: "") }
     var showValidation by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(false) }
 
     fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
@@ -274,7 +291,17 @@ private fun ApoderadoFormDialog(
                 OutlinedTextField(apellidos, { apellidos = it; showValidation = false }, label = { Text("Apellidos") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 EmailTextField(email, { email = it; showValidation = false }, obligatorio = true, showValidation = showValidation)
                 TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
-                OutlinedTextField(direccion, { direccion = it }, label = { Text("DirecciÃ³n") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                UbicacionSelector(
+                    codigoRegion = codigoRegion,
+                    codigoComuna = codigoComuna,
+                    calleNumero = calleNumero,
+                    onRegionChange = { codigoRegion = it },
+                    onComunaChange = { codigoComuna = it },
+                    onCalleNumeroChange = { calleNumero = it },
+                    listarRegiones = listarRegiones,
+                    listarComunas = listarComunas,
+                    resolverComuna = resolverComuna
+                )
                 ValidationMessageBanner(if (showValidation) errorValidacion(true) else null)
             }
         },
@@ -293,7 +320,8 @@ private fun ApoderadoFormDialog(
                             apellidos = apellidos.trim(),
                             email = email.trim().ifBlank { null },
                             telefono = telefono.trim().ifBlank { null },
-                            direccion = direccion.trim().ifBlank { null }
+                            codigoComuna = codigoComuna?.trim()?.ifBlank { null },
+                            calleNumero = calleNumero.trim().ifBlank { null }
                         )
                     )
                 },

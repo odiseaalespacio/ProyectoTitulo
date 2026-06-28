@@ -1,4 +1,4 @@
-﻿package com.example.cloty_apoderado.ui.components
+package com.example.cloty_apoderado.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -80,7 +80,7 @@ fun TelefonoChilenoTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier.fillMaxWidth(),
-    label: String = "TelÃ©fono",
+    label: String = "Teléfono",
     obligatorio: Boolean = false,
     showValidation: Boolean = false
 ) {

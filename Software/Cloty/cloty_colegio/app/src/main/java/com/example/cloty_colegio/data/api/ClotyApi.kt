@@ -1,4 +1,4 @@
-﻿package com.example.cloty_colegio.data.api
+package com.example.cloty_colegio.data.api
 
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -35,6 +35,27 @@ interface ClotyApi {
 
     @GET("api/colegio/operaciones/dashboard")
     suspend fun dashboard(): ColegioDashboard
+
+    @GET("api/colegio/operaciones/dashboard/comunidad")
+    suspend fun dashboardComunidad(): DashboardComunidadDetalle
+
+    @GET("api/colegio/operaciones/dashboard/tarjetas")
+    suspend fun dashboardTarjetas(): DashboardTarjetasDetalle
+
+    @GET("api/colegio/operaciones/dashboard/prendas")
+    suspend fun dashboardPrendas(): DashboardPrendasDetalle
+
+    @GET("api/colegio/operaciones/dashboard/notificaciones")
+    suspend fun dashboardNotificaciones(): DashboardNotificacionesDetalle
+
+    @GET("api/colegio/operaciones/dashboard/cursos")
+    suspend fun dashboardCursos(): List<DashboardCursoDetalle>
+
+    @GET("api/colegio/operaciones/dashboard/cursos/{idCurso}")
+    suspend fun dashboardCurso(@Path("idCurso") idCurso: Int): DashboardCursoDetalle
+
+    @GET("api/colegio/operaciones/dashboard/actividad")
+    suspend fun dashboardActividad(): List<ActividadReciente>
 
     @POST("api/auth/cambiar-contrasena")
     suspend fun cambiarContrasena(@Body body: CambiarContrasenaRequest)
@@ -83,4 +104,13 @@ interface ClotyApi {
 
     @DELETE("api/cursos/{id}")
     suspend fun eliminarCurso(@Path("id") id: Int)
+
+    @GET("api/ubicacion/regiones")
+    suspend fun listarRegiones(): List<Region>
+
+    @GET("api/ubicacion/regiones/{codigoRegion}/comunas")
+    suspend fun listarComunas(@Path("codigoRegion") codigoRegion: String): List<Comuna>
+
+    @GET("api/ubicacion/comunas/{codigoComuna}")
+    suspend fun obtenerComuna(@Path("codigoComuna") codigoComuna: String): Comuna
 }

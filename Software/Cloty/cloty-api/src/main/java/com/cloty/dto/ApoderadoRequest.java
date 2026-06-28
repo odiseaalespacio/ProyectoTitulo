@@ -15,6 +15,7 @@ public record ApoderadoRequest(
 		/** Opcional. */
 		@Email @Size(max = 150) String email,
 		@TelefonoChileno @Size(max = 20) String telefono,
-		@Size(max = 255) String direccion
+		@Size(max = 5) String codigoComuna,
+		@Size(max = 255) String calleNumero
 ) {
 }

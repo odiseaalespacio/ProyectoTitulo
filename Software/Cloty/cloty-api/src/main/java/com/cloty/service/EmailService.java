@@ -1,4 +1,4 @@
-﻿package com.cloty.service;
+package com.cloty.service;
 
 
 import com.cloty.domain.Administrador;
@@ -60,13 +60,13 @@ public class EmailService {
 				1. Abra la app Cloty Colegio.
 				2. Elija "Activar cuenta".
 				3. Ingrese su RUT (%s).
-				4. RecibirÃ¡ un cÃ³digo de 6 dÃ­gitos en este correo.
-				5. Ingrese el cÃ³digo y cree su contraseÃ±a.
+				4. Recibirá un código de 6 dígitos en este correo.
+				5. Ingrese el código y cree su contraseña.
 
 				Saludos,
 				Equipo Cloty
 				""".formatted(colegio.getNombre(), colegio.getRut());
-		enviar(destino, "Cloty â€” Active su cuenta de colegio", cuerpo);
+		enviar(destino, "Cloty — Active su cuenta de colegio", cuerpo);
 	}
 
 	@Async
@@ -79,14 +79,14 @@ public class EmailService {
 		String cuerpo = """
 				Hola %s %s,
 
-				El colegio "%s" lo registrÃ³ en Cloty.
+				El colegio "%s" lo registró en Cloty.
 
 				Para activar su cuenta:
 				1. Abra la app Cloty Apoderado.
 				2. Elija "Activar cuenta".
 				3. Ingrese su RUT (%s).
-				4. RecibirÃ¡ un cÃ³digo de 6 dÃ­gitos en este correo.
-				5. Ingrese el cÃ³digo y cree su contraseÃ±a.
+				4. Recibirá un código de 6 dígitos en este correo.
+				5. Ingrese el código y cree su contraseña.
 
 				Saludos,
 				Equipo Cloty
@@ -95,10 +95,8 @@ public class EmailService {
 				apoderado.getApellidos(),
 				colegio.getNombre(),
 				apoderado.getRut());
-		enviar(destino, "Cloty â€” Active su cuenta de apoderado", cuerpo);
+		enviar(destino, "Cloty — Active su cuenta de apoderado", cuerpo);
 	}
-
-	@Async
 
 	public void enviarCodigoActivacionApoderado(Apoderado apoderado, Colegio colegio, String codigo, int minutosValidez) {
 
@@ -106,7 +104,7 @@ public class EmailService {
 
 		if (destino == null || destino.isBlank()) {
 
-			log.debug("Sin correo para cÃ³digo de activaciÃ³n del apoderado id={}", apoderado.getIdApoderado());
+			log.debug("Sin correo para código de activación del apoderado id={}", apoderado.getIdApoderado());
 
 			return;
 
@@ -117,16 +115,16 @@ public class EmailService {
 				Hola %s %s,
 
 
-				El colegio "%s" lo registrÃ³ en Cloty.
+				El colegio "%s" lo registró en Cloty.
 
 
-				Su cÃ³digo de activaciÃ³n es: %s
+				Su código de activación es: %s
 
 
-				Abra la app Cloty Apoderado, elija "Activar cuenta" e ingrese su RUT (%s), este cÃ³digo y la contraseÃ±a que desee.
+				Abra la app Cloty Apoderado, elija "Activar cuenta" e ingrese su RUT (%s), este código y la contraseña que desee.
 
 
-				El cÃ³digo vence en %d minutos.
+				El código vence en %d minutos.
 
 
 				Saludos,
@@ -147,12 +145,10 @@ public class EmailService {
 
 				minutosValidez);
 
-		enviar(destino, "Cloty â€” CÃ³digo de activaciÃ³n", cuerpo);
+		enviar(destino, "Cloty — Código de activación", cuerpo);
 
 	}
 
-
-	@Async
 
 	public void enviarCodigoActivacionColegio(Colegio colegio, String codigo, int minutosValidez) {
 
@@ -160,7 +156,7 @@ public class EmailService {
 
 		if (destino == null || destino.isBlank()) {
 
-			log.debug("Sin correo para cÃ³digo de activaciÃ³n del colegio id={}", colegio.getIdColegio());
+			log.debug("Sin correo para código de activación del colegio id={}", colegio.getIdColegio());
 
 			return;
 
@@ -174,13 +170,13 @@ public class EmailService {
 				El colegio "%s" fue registrado en Cloty.
 
 
-				Su cÃ³digo de activaciÃ³n es: %s
+				Su código de activación es: %s
 
 
-				Abra la app Cloty Colegio, elija "Activar cuenta" e ingrese su RUT (%s), este cÃ³digo, telÃ©fono y contraseÃ±a.
+				Abra la app Cloty Colegio, elija "Activar cuenta" e ingrese su RUT (%s), este código, teléfono y contraseña.
 
 
-				El cÃ³digo vence en %d minutos.
+				El código vence en %d minutos.
 
 
 				Saludos,
@@ -189,7 +185,7 @@ public class EmailService {
 
 				""".formatted(colegio.getNombre(), codigo, colegio.getRut(), minutosValidez);
 
-		enviar(destino, "Cloty â€” CÃ³digo de activaciÃ³n", cuerpo);
+		enviar(destino, "Cloty — Código de activación", cuerpo);
 
 	}
 
@@ -216,7 +212,7 @@ public class EmailService {
 
 				Usuario: %s
 
-				Puede iniciar sesiÃ³n en la app Cloty Apoderado con su RUT (%s) o su usuario.
+				Puede iniciar sesión en la app Cloty Apoderado con su RUT (%s) o su usuario.
 
 
 				Saludos,
@@ -233,7 +229,7 @@ public class EmailService {
 
 				apoderado.getRut());
 
-		enviar(destino, "Cloty â€” Cuenta activada", cuerpo);
+		enviar(destino, "Cloty — Cuenta activada", cuerpo);
 
 	}
 
@@ -263,7 +259,7 @@ public class EmailService {
 				RUT: %s
 
 
-				Ya puede iniciar sesiÃ³n en la app Cloty Colegio.
+				Ya puede iniciar sesión en la app Cloty Colegio.
 
 
 				Saludos,
@@ -272,7 +268,7 @@ public class EmailService {
 
 				""".formatted(colegio.getNombre(), username, colegio.getRut());
 
-		enviar(destino, "Cloty â€” Cuenta de colegio activada", cuerpo);
+		enviar(destino, "Cloty — Cuenta de colegio activada", cuerpo);
 
 	}
 
@@ -294,17 +290,17 @@ public class EmailService {
 				Hola %s %s,
 
 
-				Se creÃ³ su cuenta de administrador en Cloty.
+				Se creó su cuenta de administrador en Cloty.
 
 
 				Usuario: %s
 
 				RUT: %s
 
-				ContraseÃ±a: %s
+				Contraseña: %s
 
 
-				Inicie sesiÃ³n en la app Cloty Administrador con su usuario o RUT y la contraseÃ±a indicada.
+				Inicie sesión en la app Cloty Administrador con su usuario o RUT y la contraseña indicada.
 
 
 				Saludos,
@@ -323,7 +319,7 @@ public class EmailService {
 
 				password != null ? password : "(definida al crear la cuenta)");
 
-		enviar(destino, "Cloty â€” Cuenta de administrador creada", cuerpo);
+		enviar(destino, "Cloty — Cuenta de administrador creada", cuerpo);
 
 	}
 
@@ -337,13 +333,13 @@ public class EmailService {
 		String cuerpo = """
 				Hola %s %s,
 
-				Se creÃ³ su cuenta de super usuario en Cloty.
+				Se creó su cuenta de super usuario en Cloty.
 
 				Usuario: %s
 				RUT: %s
-				ContraseÃ±a: %s
+				Contraseña: %s
 
-				Inicie sesiÃ³n en la app Cloty Administrador con su usuario o RUT y la contraseÃ±a indicada.
+				Inicie sesión en la app Cloty Administrador con su usuario o RUT y la contraseña indicada.
 
 				Saludos,
 				Equipo Cloty
@@ -353,7 +349,7 @@ public class EmailService {
 				username,
 				superUsuario.getRut(),
 				password != null ? password : "(definida al crear la cuenta)");
-		enviar(destino, "Cloty â€” Cuenta de super usuario creada", cuerpo);
+		enviar(destino, "Cloty — Cuenta de super usuario creada", cuerpo);
 	}
 
 
@@ -365,18 +361,18 @@ public class EmailService {
 		String cuerpo = """
 				Hola,
 
-				Recibimos una solicitud para restablecer su contraseÃ±a en Cloty.
+				Recibimos una solicitud para restablecer su contraseña en Cloty.
 
-				Su cÃ³digo de recuperaciÃ³n es: %s
+				Su código de recuperación es: %s
 
-				Ingrese este cÃ³digo en la app junto con su RUT y la nueva contraseÃ±a.
+				Ingrese este código en la app junto con su RUT y la nueva contraseña.
 
-				El cÃ³digo vence en %d minutos. Si no solicitÃ³ este cambio, ignore este correo.
+				El código vence en %d minutos. Si no solicitó este cambio, ignore este correo.
 
 				Saludos,
 				Equipo Cloty
 				""".formatted(codigo, minutosValidez);
-		enviar(email, "Cloty â€” Recuperar contraseÃ±a", cuerpo);
+		enviar(email, "Cloty — Recuperar contraseña", cuerpo);
 	}
 
 	@Async
@@ -387,7 +383,7 @@ public class EmailService {
 
 		if (destino == null || destino.isBlank()) {
 
-			log.debug("Sin correo para notificaciÃ³n al apoderado id={}", apoderado.getIdApoderado());
+			log.debug("Sin correo para notificación al apoderado id={}", apoderado.getIdApoderado());
 
 			return;
 
@@ -404,7 +400,7 @@ public class EmailService {
 				%s
 
 
-				Revise tambiÃ©n la app Cloty Apoderado para mÃ¡s detalles.
+				Revise también la app Cloty Apoderado para más detalles.
 
 
 				Saludos,
@@ -421,7 +417,7 @@ public class EmailService {
 
 				mensaje);
 
-		enviar(destino, "Cloty â€” " + titulo, cuerpo);
+		enviar(destino, "Cloty — " + titulo, cuerpo);
 
 	}
 
@@ -430,7 +426,7 @@ public class EmailService {
 
 		if (!enabled) {
 
-			log.debug("Correo deshabilitado (cloty.mail.enabled=false), no se envÃ­a a {}", destino);
+			log.debug("Correo deshabilitado (cloty.mail.enabled=false), no se envía a {}", destino);
 
 			return;
 
@@ -454,7 +450,7 @@ public class EmailService {
 
 		} catch (Exception e) {
 
-			log.error("Error al enviar correo a {}: {}", destino, e.getMessage());
+			log.error("Error al enviar correo a {}: {}", destino, e.getMessage(), e);
 
 		}
 

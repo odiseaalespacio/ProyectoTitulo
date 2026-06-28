@@ -1,4 +1,4 @@
-﻿package com.cloty.web;
+package com.cloty.web;
 
 import com.cloty.domain.Apoderado;
 import com.cloty.dto.ApoderadoRequest;

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.example.cloty_administrador.data.api.Curso
 import com.example.cloty_administrador.data.api.CursoRequest
 import com.example.cloty_administrador.ui.ClotyViewModel
+import com.example.cloty_administrador.ui.components.ClotyPullRefresh
 import com.example.cloty_administrador.ui.components.MessageBanner
 import com.example.cloty_administrador.ui.components.NivelSelector
 
@@ -49,6 +50,7 @@ fun CursosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     val colegios by viewModel.colegios.collectAsState()
     val cursos by viewModel.cursos.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var idColegio by rememberSaveable { mutableIntStateOf(0) }
@@ -82,14 +84,19 @@ fun CursosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             )
         }
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ClotyPullRefresh(
+            refreshing = refreshing,
+            onRefresh = { viewModel.refrescarCursosColegio(idColegio) },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+        Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             ColegioSelector(colegios, idColegio) { idColegio = it }
             MessageBanner(error, true)
             MessageBanner(message, false)
             if (idColegio > 0 && cursos.isEmpty() && !loading && error == null) {
                 Text("No hay cursos. Impórtelos desde Carga CSV → alumnos.")
             }
-            LazyColumn {
+            LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                 items(cursos) { curso ->
                     ListItem(
                         headlineContent = { Text(curso.nombre) },
@@ -114,6 +121,7 @@ fun CursosScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                     )
                 }
             }
+        }
         }
     }
 

@@ -1,4 +1,4 @@
-﻿package com.example.cloty_administrador.data.api
+package com.example.cloty_administrador.data.api
 
 data class LoginRequest(val identificador: String, val password: String)
 
@@ -60,7 +60,8 @@ data class ColegioRequest(
     val nombre: String,
     val email: String,
     val telefono: String? = null,
-    val direccion: String? = null
+    val codigoComuna: String? = null,
+    val calleNumero: String? = null
 )
 
 data class ApoderadoRequest(
@@ -70,7 +71,8 @@ data class ApoderadoRequest(
     val apellidos: String,
     val email: String? = null,
     val telefono: String? = null,
-    val direccion: String? = null
+    val codigoComuna: String? = null,
+    val calleNumero: String? = null
 )
 
 data class AlumnoRequest(
@@ -102,7 +104,8 @@ data class Apoderado(
     val apellidos: String,
     val email: String?,
     val telefono: String?,
-    val direccion: String?
+    val codigoComuna: String?,
+    val calleNumero: String?
 )
 
 data class CursoRequest(
@@ -155,7 +158,8 @@ data class Colegio(
     val nombre: String,
     val email: String?,
     val telefono: String?,
-    val direccion: String?
+    val codigoComuna: String?,
+    val calleNumero: String?
 )
 
 data class Curso(
@@ -219,6 +223,17 @@ data class SuperUsuarioRequest(
     val apellidos: String,
     val email: String,
     val telefono: String? = null
+)
+
+data class Region(
+    val codigoRegion: String,
+    val nombre: String
+)
+
+data class Comuna(
+    val codigoComuna: String,
+    val codigoRegion: String,
+    val nombre: String
 )
 
 data class Usuario(

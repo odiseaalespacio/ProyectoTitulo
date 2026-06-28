@@ -1,4 +1,4 @@
-﻿package com.example.cloty_administrador.ui.components
+package com.example.cloty_administrador.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -45,7 +45,7 @@ fun PasswordTextField(
             IconButton(onClick = { visible = !visible }) {
                 Icon(
                     if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    contentDescription = if (visible) "Ocultar contraseÃ±a" else "Mostrar contraseÃ±a",
+                    contentDescription = if (visible) "Ocultar contraseña" else "Mostrar contraseña",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -123,7 +123,7 @@ fun TelefonoChilenoTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier.fillMaxWidth(),
-    label: String = "TelÃ©fono",
+    label: String = "Teléfono",
     obligatorio: Boolean = false,
     showValidation: Boolean = false
 ) {

@@ -46,8 +46,11 @@ public class Apoderado {
 	@Column(name = "telefono", length = 20)
 	private String telefono;
 
-	@Column(name = "direccion", length = 255)
-	private String direccion;
+	@Column(name = "codigo_comuna", length = 5)
+	private String codigoComuna;
+
+	@Column(name = "calle_numero", length = 255)
+	private String calleNumero;
 
 	@Column(name = "fecha_creacion", insertable = false, updatable = false)
 	private LocalDateTime fechaCreacion;

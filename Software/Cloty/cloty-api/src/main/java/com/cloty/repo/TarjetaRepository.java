@@ -28,4 +28,11 @@ public interface TarjetaRepository extends JpaRepository<Tarjeta, Integer> {
 			where t.idAlumno = a.idAlumno and a.idColegio = :idColegio
 			""")
 	long countAlumnosConTarjeta(@Param("idColegio") Integer idColegio);
+
+	@Query("""
+			select t from Tarjeta t, Alumno a
+			where t.idAlumno = a.idAlumno and a.idColegio = :idColegio
+			order by t.fechaAsignacion desc
+			""")
+	List<Tarjeta> findByColegioId(@Param("idColegio") Integer idColegio);
 }

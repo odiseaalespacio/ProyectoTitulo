@@ -11,6 +11,8 @@ import com.cloty.web.error.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Locale;
@@ -24,6 +26,7 @@ public class ColegioService {
 	private final UsuarioRepository usuarioRepository;
 	private final EmailService emailService;
 	private final CascadeEliminacionService cascadeEliminacionService;
+	private final UbicacionService ubicacionService;
 
 	@Transactional(readOnly = true)
 	public List<Colegio> listar() {
@@ -50,17 +53,19 @@ public class ColegioService {
 		}
 		String emailNorm = normalizarEmailRequerido(req.email());
 		asegurarEmailUnico(emailNorm, null);
+		ubicacionService.validarComuna(req.codigoComuna());
 		Colegio c = Colegio.builder()
 				.idUsuario(req.idUsuario())
 				.rut(rut)
 				.nombre(req.nombre())
 				.email(emailNorm)
 				.telefono(req.telefono())
-				.direccion(req.direccion())
+				.codigoComuna(blancoANull(req.codigoComuna()))
+				.calleNumero(blancoANull(req.calleNumero()))
 				.build();
 		c = colegioRepository.save(c);
 		if (c.getIdUsuario() == null) {
-			emailService.enviarInstructivoActivacionColegio(c);
+			enviarInstructivoTrasCommit(c);
 		}
 		return c;
 	}
@@ -89,7 +94,9 @@ public class ColegioService {
 		asegurarEmailUnico(emailNorm, id);
 		c.setEmail(emailNorm);
 		c.setTelefono(req.telefono());
-		c.setDireccion(req.direccion());
+		ubicacionService.validarComuna(req.codigoComuna());
+		c.setCodigoComuna(blancoANull(req.codigoComuna()));
+		c.setCalleNumero(blancoANull(req.calleNumero()));
 		return colegioRepository.save(c);
 	}
 
@@ -121,5 +128,25 @@ public class ColegioService {
 			throw new BadRequestException("El formato del correo no es válido");
 		}
 		return t.toLowerCase(Locale.ROOT);
+	}
+
+	private static String blancoANull(String s) {
+		if (s == null || s.isBlank()) {
+			return null;
+		}
+		return s.trim();
+	}
+
+	private void enviarInstructivoTrasCommit(Colegio colegio) {
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					emailService.enviarInstructivoActivacionColegio(colegio);
+				}
+			});
+		} else {
+			emailService.enviarInstructivoActivacionColegio(colegio);
+		}
 	}
 }

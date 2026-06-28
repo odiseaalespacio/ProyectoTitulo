@@ -1,4 +1,4 @@
-﻿package com.example.cloty_administrador.ui.screens
+package com.example.cloty_administrador.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,10 +47,12 @@ import com.example.cloty_administrador.data.api.Apoderado
 import com.example.cloty_administrador.data.api.ApoderadoRequest
 import com.example.cloty_administrador.data.api.Curso
 import com.example.cloty_administrador.ui.ClotyViewModel
+import com.example.cloty_administrador.ui.components.ClotyPullRefresh
 import com.example.cloty_administrador.ui.components.EmailTextField
 import com.example.cloty_administrador.ui.components.MessageBanner
 import com.example.cloty_administrador.ui.components.RutTextField
 import com.example.cloty_administrador.ui.components.TelefonoChilenoTextField
+import com.example.cloty_administrador.ui.components.UbicacionSelector
 import com.example.cloty_administrador.ui.components.ValidationMessageBanner
 import com.example.cloty_administrador.util.ChileValidators
 
@@ -62,6 +64,7 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
     val alumnos by viewModel.alumnosColegio.collectAsState()
     val cursos by viewModel.cursos.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var idColegio by rememberSaveable { mutableIntStateOf(0) }
@@ -109,8 +112,13 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             }
         }
     ) { padding ->
+        ClotyPullRefresh(
+            refreshing = refreshing,
+            onRefresh = { viewModel.refrescarDatosColegio(idColegio) },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
         Column(
-            Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ColegioSelector(colegios, idColegio) { idColegio = it }
@@ -126,7 +134,7 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                 if (apoderados.isEmpty() && !loading && error == null) {
                     Text("No hay apoderados registrados en este colegio.")
                 }
-                LazyColumn {
+                LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(apoderados) { a ->
                         ListItem(
                             headlineContent = { Text("${a.nombres} ${a.apellidos}") },
@@ -151,12 +159,12 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                 if (alumnos.isEmpty() && !loading && error == null) {
                     Text("No hay alumnos registrados en este colegio.")
                 }
-                LazyColumn {
+                LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(alumnos) { al ->
                         val cursoNombre = cursos.find { it.idCurso == al.idCurso }?.nombre ?: "Curso ${al.idCurso}"
                         ListItem(
                             headlineContent = { Text("${al.nombres} ${al.apellidos}") },
-                            supportingContent = { Text("RUT ${al.rut} Â· $cursoNombre") },
+                            supportingContent = { Text("RUT ${al.rut} · $cursoNombre") },
                             trailingContent = {
                                 Row {
                                     IconButton(onClick = {
@@ -175,6 +183,7 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
                 }
             }
         }
+        }
     }
 
     if (showApoderadoDialog && idColegio > 0) {
@@ -182,6 +191,9 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
             apoderado = editApoderado,
             loading = loading,
             onDismiss = { showApoderadoDialog = false },
+            listarRegiones = { viewModel.listarRegiones() },
+            listarComunas = { viewModel.listarComunas(it) },
+            resolverComuna = { viewModel.obtenerComuna(it) },
             onSave = { req ->
                 val edit = editApoderado
                 if (edit != null) {
@@ -218,7 +230,7 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { confirmDeleteApoderado = null },
             title = { Text("Eliminar apoderado") },
-            text = { Text("Â¿Eliminar a ${a.nombres} ${a.apellidos}? No se puede deshacer.") },
+            text = { Text("¿Eliminar a ${a.nombres} ${a.apellidos}? No se puede deshacer.") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarApoderado(a.idApoderado, idColegio)
@@ -233,7 +245,7 @@ fun GestionPersonasScreen(viewModel: ClotyViewModel, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { confirmDeleteAlumno = null },
             title = { Text("Eliminar alumno") },
-            text = { Text("Â¿Eliminar a ${al.nombres} ${al.apellidos}?") },
+            text = { Text("¿Eliminar a ${al.nombres} ${al.apellidos}?") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarAlumno(al.idAlumno, idColegio)
@@ -250,6 +262,9 @@ private fun ApoderadoFormDialog(
     apoderado: Apoderado?,
     loading: Boolean,
     onDismiss: () -> Unit,
+    listarRegiones: suspend () -> List<com.example.cloty_administrador.data.api.Region>,
+    listarComunas: suspend (String) -> List<com.example.cloty_administrador.data.api.Comuna>,
+    resolverComuna: suspend (String) -> com.example.cloty_administrador.data.api.Comuna?,
     onSave: (ApoderadoRequest) -> Unit
 ) {
     var rut by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.rut ?: "") }
@@ -257,7 +272,9 @@ private fun ApoderadoFormDialog(
     var apellidos by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.apellidos ?: "") }
     var email by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.email ?: "") }
     var telefono by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.telefono ?: "") }
-    var direccion by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.direccion ?: "") }
+    var codigoRegion by rememberSaveable(apoderado?.idApoderado) { mutableStateOf<String?>(null) }
+    var codigoComuna by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.codigoComuna) }
+    var calleNumero by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(apoderado?.calleNumero ?: "") }
     var showValidation by rememberSaveable(apoderado?.idApoderado) { mutableStateOf(false) }
 
     fun errorValidacion(mostrarVacios: Boolean) = ChileValidators.primerMensajeError(
@@ -278,7 +295,17 @@ private fun ApoderadoFormDialog(
                 OutlinedTextField(apellidos, { apellidos = it; showValidation = false }, label = { Text("Apellidos") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 EmailTextField(email, { email = it; showValidation = false }, obligatorio = true, showValidation = showValidation)
                 TelefonoChilenoTextField(telefono, { telefono = it; showValidation = false }, showValidation = showValidation)
-                OutlinedTextField(direccion, { direccion = it }, label = { Text("DirecciÃ³n") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                UbicacionSelector(
+                    codigoRegion = codigoRegion,
+                    codigoComuna = codigoComuna,
+                    calleNumero = calleNumero,
+                    onRegionChange = { codigoRegion = it },
+                    onComunaChange = { codigoComuna = it },
+                    onCalleNumeroChange = { calleNumero = it },
+                    listarRegiones = listarRegiones,
+                    listarComunas = listarComunas,
+                    resolverComuna = resolverComuna
+                )
                 ValidationMessageBanner(if (showValidation) errorValidacion(true) else null)
             }
         },
@@ -297,7 +324,8 @@ private fun ApoderadoFormDialog(
                             apellidos = apellidos.trim(),
                             email = email.trim().ifBlank { null },
                             telefono = telefono.trim().ifBlank { null },
-                            direccion = direccion.trim().ifBlank { null }
+                            codigoComuna = codigoComuna?.trim()?.ifBlank { null },
+                            calleNumero = calleNumero.trim().ifBlank { null }
                         )
                     )
                 },

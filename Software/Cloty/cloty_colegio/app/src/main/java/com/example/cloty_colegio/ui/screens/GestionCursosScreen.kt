@@ -1,4 +1,4 @@
-﻿package com.example.cloty_colegio.ui.screens
+package com.example.cloty_colegio.ui.screens
 
 
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.example.cloty_colegio.data.api.Curso
 import com.example.cloty_colegio.data.api.CursoRequest
 import com.example.cloty_colegio.ui.ClotyViewModel
+import com.example.cloty_colegio.ui.components.ClotyPullRefresh
 import com.example.cloty_colegio.ui.components.MessageBanner
 import com.example.cloty_colegio.ui.components.NivelSelector
 
@@ -52,6 +53,7 @@ fun GestionCursosScreen(
     val idColegio by viewModel.idColegio.collectAsState()
     val cursos by viewModel.cursos.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    val refreshing by viewModel.refreshing.collectAsState()
     val error by viewModel.error.collectAsState()
     val message by viewModel.message.collectAsState()
     var showDialog by rememberSaveable { mutableStateOf(false) }
@@ -83,8 +85,13 @@ fun GestionCursosScreen(
             }
         }
     ) { padding ->
+        ClotyPullRefresh(
+            refreshing = refreshing,
+            onRefresh = { viewModel.refrescarGestion() },
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
         Column(
-            Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             MessageBanner(error, true)
@@ -92,7 +99,7 @@ fun GestionCursosScreen(
             if (cursos.isEmpty() && !loading && error == null) {
                 Text("No hay cursos registrados.")
             }
-            LazyColumn {
+            LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                 items(cursos) { curso ->
                     ListItem(
                         headlineContent = { Text(curso.nombre) },
@@ -100,7 +107,7 @@ fun GestionCursosScreen(
                             Text(
                                 buildString {
                                     append(curso.nivel ?: curso.nombre)
-                                    append(" Â· ID ${curso.idCurso}")
+                                    append(" · ID ${curso.idCurso}")
                                 }
                             )
                         },
@@ -120,6 +127,7 @@ fun GestionCursosScreen(
                     )
                 }
             }
+        }
         }
     }
 
@@ -146,7 +154,7 @@ fun GestionCursosScreen(
         AlertDialog(
             onDismissRequest = { confirmDelete = null },
             title = { Text("Eliminar curso") },
-            text = { Text("Â¿Eliminar el curso ${c.nombre}? Solo es posible si no tiene alumnos vinculados.") },
+            text = { Text("¿Eliminar el curso ${c.nombre}? Solo es posible si no tiene alumnos vinculados.") },
             confirmButton = {
                 Button(onClick = {
                     viewModel.eliminarCurso(c.idCurso)
