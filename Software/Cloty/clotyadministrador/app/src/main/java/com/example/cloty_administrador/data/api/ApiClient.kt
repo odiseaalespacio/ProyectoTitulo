@@ -13,40 +13,55 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-  private var tokenStore: TokenStore? = null
+    private var tokenStore: TokenStore? = null
 
-  fun init(store: TokenStore) {
-    tokenStore = store
-  }
+    @Volatile
+    private var bearerToken: String? = null
 
-  private val authInterceptor = Interceptor { chain ->
-    val requestBuilder = chain.request().newBuilder()
-    val token = runBlocking { tokenStore?.tokenFlow?.first() }
-    if (!token.isNullOrBlank()) {
-      requestBuilder.addHeader("Authorization", "Bearer $token")
+    fun init(store: TokenStore) {
+        tokenStore = store
     }
-    chain.proceed(requestBuilder.build())
-  }
 
-  private val httpClient: OkHttpClient by lazy {
-    OkHttpClient.Builder()
-      .connectTimeout(30, TimeUnit.SECONDS)
-      .readTimeout(60, TimeUnit.SECONDS)
-      .addInterceptor(authInterceptor)
-      .addInterceptor(
-        HttpLoggingInterceptor().apply {
-          level = HttpLoggingInterceptor.Level.BODY
+    fun setBearerToken(token: String?) {
+        bearerToken = token?.takeIf { it.isNotBlank() }
+    }
+
+    private val authInterceptor = Interceptor { chain ->
+        val requestBuilder = chain.request().newBuilder()
+        val path = chain.request().url.encodedPath
+        val isPublicAuth = path.endsWith("/api/auth/login") ||
+            path.contains("/api/auth/solicitar-recuperacion") ||
+            path.endsWith("/api/auth/restablecer-contrasena")
+        if (!isPublicAuth) {
+            val token = bearerToken
+                ?: tokenStore?.peekToken()
+                ?: runBlocking { tokenStore?.tokenFlow?.first() }
+            if (!token.isNullOrBlank()) {
+                requestBuilder.addHeader("Authorization", "Bearer $token")
+            }
         }
-      )
-      .build()
-  }
+        chain.proceed(requestBuilder.build())
+    }
 
-  val api: ClotyApi by lazy {
-    Retrofit.Builder()
-      .baseUrl(BuildConfig.API_BASE_URL)
-      .client(httpClient)
-      .addConverterFactory(GsonConverterFactory.create())
-      .build()
-      .create(ClotyApi::class.java)
-  }
+    private val httpClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .addInterceptor(authInterceptor)
+            .addInterceptor(
+                HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                }
+            )
+            .build()
+    }
+
+    val api: ClotyApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.API_BASE_URL)
+            .client(httpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ClotyApi::class.java)
+    }
 }

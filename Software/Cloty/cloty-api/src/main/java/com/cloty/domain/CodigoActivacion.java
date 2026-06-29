@@ -31,7 +31,7 @@ public class CodigoActivacion {
 	private Integer idCodigoActivacion;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "tipo", nullable = false, length = 20)
+	@Column(name = "tipo", nullable = false, length = 32)
 	private TipoEntidadActivacion tipo;
 
 	@Column(name = "id_entidad", nullable = false)

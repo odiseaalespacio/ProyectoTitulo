@@ -426,7 +426,7 @@ public class EmailService {
 
 		if (!enabled) {
 
-			log.debug("Correo deshabilitado (cloty.mail.enabled=false), no se envía a {}", destino);
+			log.warn("Correo deshabilitado (cloty.mail.enabled=false), no se envía a {}", destino);
 
 			return;
 

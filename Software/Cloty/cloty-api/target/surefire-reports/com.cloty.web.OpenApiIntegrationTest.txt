@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.cloty.web.OpenApiIntegrationTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.476 s -- in com.cloty.web.OpenApiIntegrationTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.036 s -- in com.cloty.web.OpenApiIntegrationTest

@@ -21,12 +21,29 @@ public class MailStartupLogger {
 	@Value("${spring.mail.username:}")
 	private String smtpUser;
 
+	@Value("${spring.mail.password:}")
+	private String smtpPassword;
+
+	@Value("${spring.mail.port:587}")
+	private int smtpPort;
+
 	@PostConstruct
 	void logEstadoCorreo() {
-		if (mailEnabled) {
-			log.info("Correo Cloty ACTIVO: from={}, smtp={} user={}", mailFrom, smtpHost, smtpUser);
-		} else {
-			log.warn("Correo Cloty DESACTIVADO (cloty.mail.enabled=false). Revise application-local.properties.");
+		if (!mailEnabled) {
+			log.warn("Correo Cloty DESACTIVADO (cloty.mail.enabled=false).");
+			return;
+		}
+		log.info("Correo Cloty ACTIVO: from={}, smtp={}:{} user={}", mailFrom, smtpHost, smtpPort, smtpUser);
+		if (smtpUser == null || smtpUser.isBlank()) {
+			log.error("Correo activo pero SPRING_MAIL_USERNAME está vacío. No se enviarán correos.");
+		}
+		if (smtpPassword == null || smtpPassword.isBlank()) {
+			log.error("Correo activo pero SPRING_MAIL_PASSWORD está vacío. No se enviarán correos.");
+		}
+		if (mailFrom != null && smtpUser != null
+				&& !mailFrom.isBlank() && !smtpUser.isBlank()
+				&& !mailFrom.trim().equalsIgnoreCase(smtpUser.trim())) {
+			log.error("CLOTY_MAIL_FROM ({}) debe coincidir con SPRING_MAIL_USERNAME ({}) para Gmail.", mailFrom, smtpUser);
 		}
 	}
 }

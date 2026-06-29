@@ -8,6 +8,7 @@ import com.example.cloty_administrador.data.api.SuperUsuarioCompletoRequest
 import com.example.cloty_administrador.data.api.SuperUsuarioRequest
 import com.example.cloty_administrador.data.api.UsuarioUpdateRequest
 import com.example.cloty_administrador.data.api.ApiClient
+import com.example.cloty_administrador.util.JwtClaims
 import com.example.cloty_administrador.data.api.AlumnoRequest
 import com.example.cloty_administrador.data.api.ApoderadoRequest
 import com.example.cloty_administrador.data.api.ColegioApoderadoRequest
@@ -45,31 +46,28 @@ class ClotyRepository(context: Context) {
         )
 
     suspend fun login(identificador: String, password: String): String {
+        ApiClient.setBearerToken(null)
         val response = api.login(LoginRequest(identificador, password))
-        tokenStore.saveSession(response.token, "")
-        val me = api.me()
-        val rol = me.rol.trim()
+        val token = response.token
+        ApiClient.setBearerToken(token)
+        val rol = JwtClaims.rol(token)?.trim().orEmpty()
         require(rol == TokenStore.ROL_ADMINISTRADOR || rol == TokenStore.ROL_SUPER_USUARIO) {
             "Esta cuenta no tiene acceso al panel de administración"
         }
-        tokenStore.saveSession(response.token, rol)
+        tokenStore.saveSession(token, rol)
         return rol
     }
 
     suspend fun refrescarRolSesion(): String? {
-        val token = tokenStore.tokenFlow.firstOrNull()
+        val token = tokenStore.peekToken()
+            ?: tokenStore.tokenFlow.firstOrNull()
         if (token.isNullOrBlank()) return null
-        return try {
-            val me = api.me()
-            val rol = me.rol.trim()
-            if (rol == TokenStore.ROL_ADMINISTRADOR || rol == TokenStore.ROL_SUPER_USUARIO) {
-                tokenStore.saveSession(token, rol)
-                rol
-            } else {
-                logout()
-                null
-            }
-        } catch (_: Exception) {
+        ApiClient.setBearerToken(token)
+        val rol = JwtClaims.rol(token)?.trim().orEmpty()
+        return if (rol == TokenStore.ROL_ADMINISTRADOR || rol == TokenStore.ROL_SUPER_USUARIO) {
+            tokenStore.saveSession(token, rol)
+            rol
+        } else {
             logout()
             null
         }

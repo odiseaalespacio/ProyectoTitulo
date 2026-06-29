@@ -73,7 +73,7 @@ public class ActivacionCodigoService {
 	public void emitirRecuperacionContrasena(Integer idUsuario, String email) {
 		String codigo = generarCodigo();
 		guardarCodigo(TipoEntidadActivacion.RECUPERACION_CONTRASENA, idUsuario, codigo);
-		emailService.enviarCodigoRecuperacionContrasena(email, codigo, expiracionMinutos);
+		enviarCodigoTrasCommit(() -> emailService.enviarCodigoRecuperacionContrasena(email, codigo, expiracionMinutos));
 	}
 
 	@Transactional

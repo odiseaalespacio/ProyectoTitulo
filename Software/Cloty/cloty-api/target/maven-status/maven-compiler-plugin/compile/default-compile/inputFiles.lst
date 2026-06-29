@@ -53,10 +53,13 @@ C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\DashboardPrendasDetalleResponse.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\DashboardTarjetaItem.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\DashboardTarjetasDetalleResponse.java
+C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\EstadoCorreoResponse.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\EventoRequest.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\LoginRequest.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\NotificacionRequest.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\OperacionPrendaResponse.java
+C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\ProbarCorreoRequest.java
+C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\ProbarCorreoResponse.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\PupiloResumenResponse.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\RegionResponse.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\dto\RegistroApoderadoRequest.java
@@ -107,6 +110,7 @@ C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\service\CursoService.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\service\EmailService.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\service\EventoService.java
+C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\service\MailDiagnosticService.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\service\NotificacionService.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\service\SuperUsuarioService.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\service\TarjetaService.java
@@ -135,6 +139,7 @@ C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\web\error\ResourceNotFoundException.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\web\EventoController.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\web\NotificacionController.java
+C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\web\SistemaCorreoController.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\web\SuperUsuarioController.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\web\TarjetaController.java
 C:\Users\Matias Ignacio\Desktop\ProyectoTitulo\Software\Cloty\cloty-api\src\main\java\com\cloty\web\UbicacionController.java
